@@ -172,7 +172,7 @@
   const $=id=>document.getElementById(id);
   const Q=new URLSearchParams(location.search);
   const EVENT=(Q.get('event')||'').trim(), WA=(Q.get('wa')||'').replace(/\D/g,''), DEADLINE=(Q.get('deadline')||'').trim();
-  const ROLES=[['EXP','EXP lane','#d23a55'],['JUNGLE','Jungler','#2f9e62'],['MID','Mid lane','#8a5cd6'],['GOLD','Gold lane','#e0a21b'],['ROAM','Roamer','#3a86d9'],['SUB','Substitute','#5b6782']];
+  const ROLES=[['EXP','EXP lane','#d23a55'],['JUNGLE','Jungler','#2f9e62'],['MID','Mid lane','#8a5cd6'],['GOLD','Gold lane','#e0a21b'],['ROAM','Roamer','#3a86d9'],['SUB','Sub','#5b6782']];
   const roleColor=r=>(ROLES.find(x=>x[0]===r)||ROLES[5])[2];
   const MAIN=5, MAX=8, KEY='ja-team-reg-v1';
 
