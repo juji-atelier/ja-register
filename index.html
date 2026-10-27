@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Team Registration</title>
+<meta name="description" content="Register your MLBB team: team name, logo, players, roles and photos.">
+<meta name="theme-color" content="#0a1222">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<!--
+  JA ESPORT team registration (static page, works on GitHub Pages, no server, no accounts).
+  The team leader fills in the team and players, then sends ONE file (JA-TEAM-<name>.txt) to the organiser on WhatsApp.
+  The organiser drops the files into "Schedule & Standings → Teams → Import team files" in the JA ESPORT CONSOLE:
+  names, roles, logo and photos (background removed there) go straight into the slots.
+  Link options:  ?event=HQ%20CHAMPIONSHIP   tournament name in the header
+                 &wa=60123456789            organiser WhatsApp number (opens the chat after sending)
+                 &deadline=30%20Oct%2C%2010pm   shown under the title
+  © JUJI-ATELIER SYSTEM
+-->
+<style>
+  :root{
+    --abyss:#0a1222; --deck:#121d33; --deck2:#0e1729; --line:#22304f;
+    --ink:#eef2fb; --mist:#9aa7c4; --rift:#d23a55; --tide:#3a86d9; --crown:#f2b632; --ok:#48bb6e;
+    --hd:"Chakra Petch",system-ui,sans-serif; --bd:"Barlow",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--abyss);color:var(--ink);font:400 16px/1.5 var(--bd);
+    background-image:radial-gradient(900px 420px at 0% -10%,rgba(210,58,85,.22),transparent 60%),radial-gradient(900px 420px at 100% -10%,rgba(58,134,217,.22),transparent 60%);
+    background-repeat:no-repeat;min-height:100vh}
+  .wrap{max-width:680px;margin:0 auto;padding:20px 16px calc(40px + env(safe-area-inset-bottom))}
+  :focus-visible{outline:2px solid var(--crown);outline-offset:2px}
+
+  /* top line */
+  .top{display:flex;align-items:center;gap:10px;font:600 14px var(--hd);color:var(--mist)}
+  .top .mark{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:linear-gradient(135deg,var(--rift),var(--tide));color:#fff;font:700 13px var(--hd)}
+  .top .ev{color:var(--ink)}
+
+  /* hero: the team card that builds itself as they type */
+  .hero{margin:18px 0 8px;position:relative;border-radius:18px;overflow:hidden;background:var(--deck);border:1px solid var(--line);
+    display:grid;grid-template-columns:104px 1fr;gap:16px;align-items:center;padding:18px}
+  .hero::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:linear-gradient(90deg,var(--rift) 0 50%,var(--tide) 50% 100%)}
+  .logoBox{width:104px;height:104px;border-radius:16px;border:2px dashed #34466f;background:var(--deck2) center/contain no-repeat;
+    display:grid;place-items:center;text-align:center;cursor:pointer;color:var(--mist);font:500 13px/1.2 var(--bd);padding:8px}
+  .logoBox.has{border-style:solid;border-color:var(--line);color:transparent}
+  .hero h1{margin:0;font:700 clamp(26px,7vw,40px)/1.02 var(--hd);letter-spacing:.01em;word-break:break-word}
+  .hero h1.empty{color:#4a5b82}
+  .hero .sub{margin-top:6px;color:var(--mist);font-size:14px}
+
+  section{margin-top:26px}
+  h2{font:600 19px var(--hd);margin:0 0 4px}
+  .lead{margin:0 0 14px;color:var(--mist);font-size:15px;max-width:60ch}
+  label.f{display:block;margin-bottom:12px}
+  label.f span{display:block;font-size:14px;color:var(--mist);margin-bottom:5px}
+  input[type=text],input[type=tel],select{width:100%;background:var(--deck2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:12px 12px;font:500 16px var(--bd)}
+  input::placeholder{color:#55648a}
+  input:focus,select:focus{outline:none;border-color:var(--tide)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  input[type=file]{display:none}
+
+  /* roster: one row per player, the photo slot shaped like the stream's lineup card */
+  .roster{display:flex;flex-direction:column;gap:12px}
+  .pl{display:grid;grid-template-columns:96px 1fr;gap:12px;background:var(--deck);border:1px solid var(--line);border-radius:14px;padding:10px;position:relative}
+  .pl.sub{border-style:dashed}
+  .shot{width:96px;height:128px;border-radius:10px;background:var(--deck2) center top/cover no-repeat;border:1px solid var(--line);cursor:pointer;position:relative;
+    display:grid;place-items:center;color:var(--mist);font-size:12px;text-align:center;padding:6px;overflow:hidden}
+  .shot.has{color:transparent}
+  .shot .role{position:absolute;left:0;right:0;bottom:0;padding:3px 0;font:700 11px var(--hd);letter-spacing:.06em;color:#fff;text-align:center}
+  .pl .fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:start}
+  .pl .fields .ign{grid-column:1 / -1}
+  .pl .fields input,.pl .fields select{padding:10px;font-size:16px}
+  .pl .del{position:absolute;top:8px;right:8px;background:none;border:0;color:var(--mist);font-size:20px;line-height:1;cursor:pointer;padding:4px}
+  .pl .fields .ign{padding-right:34px}
+  .addsub{margin-top:12px;width:100%;background:none;border:1px dashed #34466f;color:var(--mist);border-radius:12px;padding:12px;font:600 15px var(--hd);cursor:pointer}
+  .addsub:disabled{opacity:.4;cursor:default}
+
+  .tips{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;background:var(--deck2);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:14px}
+  .tips svg{width:58px;height:78px}
+  .tips ul{margin:0;padding-left:18px;color:var(--mist);font-size:14px}
+  .tips li b{color:var(--ink);font-weight:600}
+
+  /* send */
+  .send{margin-top:28px;padding:18px;border-radius:18px;background:var(--deck);border:1px solid var(--line)}
+  .check{margin:0 0 14px;padding:0;list-style:none;font-size:15px}
+  .check li{padding:4px 0 4px 28px;position:relative;color:var(--mist)}
+  .check li::before{content:"";position:absolute;left:0;top:8px;width:16px;height:16px;border-radius:50%;border:2px solid #44567f}
+  .check li.ok{color:var(--ink)} .check li.ok::before{background:var(--ok);border-color:var(--ok)}
+  .check li.warn::before{border-color:var(--crown)}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:15px;font:700 17px var(--hd);cursor:pointer;text-align:center;text-decoration:none}
+  .btn.go{background:var(--crown);color:#2a1d00}
+  .btn.go:disabled{background:#3a3f4d;color:#7f879a;cursor:default}
+  .btn.ghost{background:none;border:1px solid var(--line);color:var(--ink);font-weight:600;font-size:15px;padding:12px}
+  .btns2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .msg{min-height:22px;margin-top:10px;font-size:14px;color:var(--crown)}
+  .msg.ok{color:var(--ok)}
+  .done{display:none;margin-top:14px;padding:14px;border-radius:12px;background:rgba(72,187,110,.12);border:1px solid rgba(72,187,110,.4)}
+  .done.on{display:block}
+  .done p{margin:0 0 10px}
+  .btn.wa{background:#25d366;color:#05230f}
+
+  .foot{margin-top:28px;text-align:center;color:#55648a;font-size:13px}
+  .foot button{background:none;border:0;color:var(--mist);text-decoration:underline;font:inherit;cursor:pointer;padding:6px}
+  .busy{opacity:.5;pointer-events:none}
+  @media (max-width:380px){.pl{grid-template-columns:84px 1fr}.shot{width:84px;height:112px}.pl .fields{grid-template-columns:1fr}.row2{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion:no-preference){.hero h1{transition:color .2s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="mark">JA</span><span class="ev" id="ev">Team registration</span></div>
+
+  <div class="hero">
+    <div class="logoBox" id="logoBox" role="button" tabindex="0" aria-label="Add team logo">Tap to add team logo</div>
+    <div>
+      <h1 id="heroName" class="empty">Your team</h1>
+      <div class="sub" id="heroSub">Fill in the form, then send one file to the organiser.</div>
+    </div>
+  </div>
+
+  <section>
+    <h2>Team</h2>
+    <label class="f"><span>Team name (as it should appear on stream)</span><input type="text" id="teamName" maxlength="32" autocomplete="off"></label>
+    <div class="row2">
+      <label class="f"><span>Team leader</span><input type="text" id="leader" maxlength="40" autocomplete="name"></label>
+      <label class="f"><span>Leader's WhatsApp</span><input type="tel" id="phone" maxlength="20" placeholder="01x-xxx xxxx" autocomplete="tel"></label>
+    </div>
+  </section>
+
+  <section>
+    <h2>Players</h2>
+    <p class="lead">Five main players, plus up to three substitutes. Use the in-game name exactly as it should show on stream.</p>
+    <div class="tips">
+      <svg viewBox="0 0 58 78" aria-hidden="true"><rect x="1" y="1" width="56" height="76" rx="7" fill="#0e1729" stroke="#3a86d9" stroke-dasharray="3 3"/><circle cx="29" cy="25" r="11" fill="#9aa7c4"/><path d="M8 77c2-18 10-27 21-27s19 9 21 27z" fill="#9aa7c4"/></svg>
+      <ul>
+        <li><b>From the waist up</b>, facing the camera</li>
+        <li>Good light, no sunglasses or filters</li>
+        <li>Any background is fine — it is removed for the stream</li>
+      </ul>
+    </div>
+    <div class="roster" id="roster"></div>
+    <button class="addsub" id="addSub">Add a substitute</button>
+  </section>
+
+  <div class="send">
+    <h2>Send to the organiser</h2>
+    <ul class="check" id="check"></ul>
+    <button class="btn go" id="sendBtn">Send team file</button>
+    <div class="btns2">
+      <button class="btn ghost" id="dlBtn">Download file</button>
+      <button class="btn ghost" id="copyBtn">Copy roster text</button>
+    </div>
+    <div class="msg" id="msg" role="status"></div>
+    <div class="done" id="done">
+      <p id="doneText">File ready. Send it to the organiser on WhatsApp as a document.</p>
+      <a class="btn wa" id="waBtn" target="_blank" rel="noopener" hidden>Open organiser's WhatsApp</a>
+    </div>
+  </div>
+
+  <div class="foot">
+    <button id="openBtn">Edit a file you sent before</button> · <button id="clearBtn">Start over</button>
+    <div style="margin-top:8px">© JUJI-ATELIER SYSTEM</div>
+  </div>
+</div>
+<input type="file" id="logoFile" accept="image/*">
+<input type="file" id="photoFile" accept="image/*">
+<input type="file" id="openFile" accept=".txt,.json,text/plain,application/json">
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const Q=new URLSearchParams(location.search);
+  const EVENT=(Q.get('event')||'').trim(), WA=(Q.get('wa')||'').replace(/\D/g,''), DEADLINE=(Q.get('deadline')||'').trim();
+  const ROLES=[['EXP','EXP lane','#d23a55'],['JUNGLE','Jungler','#2f9e62'],['MID','Mid lane','#8a5cd6'],['GOLD','Gold lane','#e0a21b'],['ROAM','Roamer','#3a86d9'],['SUB','Substitute','#5b6782']];
+  const roleColor=r=>(ROLES.find(x=>x[0]===r)||ROLES[5])[2];
+  const MAIN=5, MAX=8, KEY='ja-team-reg-v1';
+
+  let st={team:{name:'',logo:''},leader:{name:'',phone:''},players:[]};
+  for(let i=0;i<MAIN;i++) st.players.push({ign:'',role:ROLES[i][0],gameId:'',photo:''});
+
+  if(EVENT){ $('ev').textContent=EVENT+' · team registration'; document.title=EVENT+' — Team registration'; }
+  if(DEADLINE) $('heroSub').textContent='Send before '+DEADLINE+'.';
+
+  // ---------- images ----------
+  function readImg(file){ return new Promise((ok,bad)=>{ const u=URL.createObjectURL(file), im=new Image();
+    im.onload=()=>ok(im); im.onerror=()=>bad(new Error('This file is not a photo the browser can open. Try a JPG or PNG.')); im.src=u; }); }
+  function hasAlpha(c){ const x=c.getContext('2d'), d=x.getImageData(0,0,c.width,c.height).data; for(let i=3;i<d.length;i+=16) if(d[i]<250) return true; return false; }
+  // photos: up to 1100 px tall (JPEG ~150 KB); logos: up to 512 px PNG (keeps transparency)
+  async function shrink(file,max,forcePng){
+    const im=await readImg(file), k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));
+    const c=document.createElement('canvas'); c.width=Math.round(im.naturalWidth*k); c.height=Math.round(im.naturalHeight*k);
+    const x=c.getContext('2d'); x.imageSmoothingQuality='high'; x.drawImage(im,0,0,c.width,c.height);
+    if(forcePng) return c.toDataURL('image/png');
+    if(hasAlpha(c)){
+      // already cut out: keep the transparency if it stays small (WebP on Android/Chrome), else put it on plain white
+      const w=c.toDataURL('image/webp',.86); if(w.startsWith('data:image/webp')&&w.length<900000) return w;
+      const p=c.toDataURL('image/png'); if(p.length<900000) return p;
+      const f=document.createElement('canvas'); f.width=c.width; f.height=c.height; const fx=f.getContext('2d');
+      fx.fillStyle='#fff'; fx.fillRect(0,0,f.width,f.height); fx.drawImage(c,0,0); return f.toDataURL('image/jpeg',.86);
+    }
+    return c.toDataURL('image/jpeg',.86);
+  }
+
+  // ---------- render ----------
+  function renderHero(){
+    const n=st.team.name.trim(); $('heroName').textContent=n||'Your team'; $('heroName').classList.toggle('empty',!n);
+    const lb=$('logoBox'); lb.classList.toggle('has',!!st.team.logo); lb.style.backgroundImage=st.team.logo?'url("'+st.team.logo+'")':'';
+    lb.textContent=st.team.logo?'':'Tap to add team logo';
+  }
+  function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+  function renderRoster(){
+    $('roster').innerHTML=st.players.map((p,i)=>{
+      const sub=i>=MAIN;
+      return '<div class="pl'+(sub?' sub':'')+'" data-i="'+i+'">'+
+        '<div class="shot'+(p.photo?' has':'')+'" role="button" tabindex="0" aria-label="Add photo for player '+(i+1)+'" style="'+(p.photo?'background-image:url(&quot;'+p.photo+'&quot;)':'')+'">'+(p.photo?'':'Tap to add photo')+
+          '<span class="role" style="background:'+roleColor(p.role)+'">'+esc(p.role)+'</span></div>'+
+        '<div class="fields">'+
+          '<input type="text" class="ign" data-k="ign" maxlength="24" placeholder="'+(sub?'Substitute':'Player '+(i+1))+' in-game name" value="'+esc(p.ign)+'" autocomplete="off" autocapitalize="off" spellcheck="false">'+
+          '<select data-k="role" aria-label="Role">'+ROLES.map(r=>'<option value="'+r[0]+'"'+(r[0]===p.role?' selected':'')+'>'+r[1]+'</option>').join('')+'</select>'+
+          '<input type="text" data-k="gameId" maxlength="24" inputmode="numeric" placeholder="ID (server)" value="'+esc(p.gameId)+'" autocomplete="off">'+
+        '</div>'+
+        (sub?'<button class="del" data-del aria-label="Remove substitute">×</button>':'')+
+      '</div>';
+    }).join('');
+    $('addSub').disabled=st.players.length>=MAX;
+  }
+  function problems(){
+    const out=[], igns=st.players.map(p=>p.ign.trim()).filter(Boolean);
+    const main=st.players.slice(0,MAIN);
+    out.push({ok:!!st.team.name.trim(), t:'Team name'});
+    out.push({ok:!!st.team.logo, t:'Team logo', soft:true});
+    out.push({ok:!!st.leader.name.trim()&&!!st.leader.phone.trim(), t:'Team leader and WhatsApp number'});
+    out.push({ok:main.every(p=>p.ign.trim()), t:'Five players with in-game names'});
+    const dup=igns.filter((n,i)=>igns.findIndex(m=>m.toLowerCase()===n.toLowerCase())!==i);
+    if(dup.length) out.push({ok:false, t:'Two players share the name "'+dup[0]+'"'});
+    const named=st.players.filter(p=>p.ign.trim()), withPhoto=named.filter(p=>p.photo).length;
+    out.push({ok:named.length>0&&withPhoto===named.length, t:'Photos ('+withPhoto+' of '+named.length+')', soft:true});
+    return out;
+  }
+  function renderCheck(){
+    const pr=problems();
+    $('check').innerHTML=pr.map(p=>'<li class="'+(p.ok?'ok':(p.soft?'warn':''))+'">'+esc(p.t)+(p.ok||!p.soft?'':' — optional, but needed for the stream')+'</li>').join('');
+    const hard=pr.filter(p=>!p.ok&&!p.soft);
+    $('sendBtn').disabled=hard.length>0; $('dlBtn').disabled=hard.length>0;
+  }
+  function renderAll(){ renderHero(); renderRoster(); renderCheck(); fillInputs(); }
+  function fillInputs(){ $('teamName').value=st.team.name; $('leader').value=st.leader.name; $('phone').value=st.leader.phone; }
+
+  // ---------- draft (kept on this phone so a refresh doesn't lose anything) ----------
+  let saveT=null;
+  function keep(){ clearTimeout(saveT); saveT=setTimeout(()=>{
+    try{ localStorage.setItem(KEY,JSON.stringify(st)); }
+    catch(e){ try{ const lite=JSON.parse(JSON.stringify(st)); lite.players.forEach(p=>p.photo=''); localStorage.setItem(KEY,JSON.stringify(lite)); }catch(e2){} }
+  },400); }
+  function loadDraft(){ try{ const s=JSON.parse(localStorage.getItem(KEY)||'null'); if(s&&s.team&&Array.isArray(s.players)) st=fromFile(s,true); }catch(e){} }
+
+  // ---------- events ----------
+  $('teamName').addEventListener('input',e=>{ st.team.name=e.target.value; renderHero(); renderCheck(); keep(); });
+  $('leader').addEventListener('input',e=>{ st.leader.name=e.target.value; renderCheck(); keep(); });
+  $('phone').addEventListener('input',e=>{ st.leader.phone=e.target.value; renderCheck(); keep(); });
+  $('roster').addEventListener('input',e=>{ const pl=e.target.closest('.pl'), k=e.target.dataset.k; if(!pl||!k) return;
+    const p=st.players[+pl.dataset.i]; p[k]=e.target.value;
+    if(k==='role'){ const r=pl.querySelector('.role'); r.textContent=p.role; r.style.background=roleColor(p.role); }
+    renderCheck(); keep(); });
+  $('roster').addEventListener('change',e=>{ if(e.target.dataset.k==='role'){ const pl=e.target.closest('.pl'); const p=st.players[+pl.dataset.i]; p.role=e.target.value;
+    const r=pl.querySelector('.role'); r.textContent=p.role; r.style.background=roleColor(p.role); keep(); } });
+  let photoIdx=-1;
+  function pickPhoto(i){ photoIdx=i; $('photoFile').click(); }
+  $('roster').addEventListener('click',e=>{ const pl=e.target.closest('.pl'); if(!pl) return; const i=+pl.dataset.i;
+    if(e.target.closest('[data-del]')){ st.players.splice(i,1); renderRoster(); renderCheck(); keep(); return; }
+    if(e.target.closest('.shot')) pickPhoto(i); });
+  $('roster').addEventListener('keydown',e=>{ if((e.key==='Enter'||e.key===' ')&&e.target.classList.contains('shot')){ e.preventDefault(); pickPhoto(+e.target.closest('.pl').dataset.i); } });
+  $('photoFile').addEventListener('change',async()=>{ const f=$('photoFile').files[0]; $('photoFile').value=''; if(!f||photoIdx<0) return;
+    const i=photoIdx, card=document.querySelector('.pl[data-i="'+i+'"] .shot'); card&&card.classList.add('busy'); say('Preparing the photo…');
+    try{ st.players[i].photo=await shrink(f,1000,false); say(''); }catch(e){ say(e.message); }
+    renderRoster(); renderCheck(); keep(); });
+  $('addSub').addEventListener('click',()=>{ if(st.players.length>=MAX) return; st.players.push({ign:'',role:'SUB',gameId:'',photo:''}); renderRoster(); renderCheck(); keep();
+    const last=document.querySelector('.pl:last-child .ign'); last&&last.focus(); });
+  $('logoBox').addEventListener('click',()=>$('logoFile').click());
+  $('logoBox').addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); $('logoFile').click(); } });
+  $('logoFile').addEventListener('change',async()=>{ const f=$('logoFile').files[0]; $('logoFile').value=''; if(!f) return;
+    try{ st.team.logo=await shrink(f,512,true); }catch(e){ say(e.message); } renderHero(); renderCheck(); keep(); });
+
+  // ---------- the team file ----------
+  function slug(s){ return (s.trim().replace(/[^\w\- ]+/g,'').replace(/\s+/g,'-')||'team').slice(0,40); }
+  function toFile(){
+    const data={ ja:'team-registration', v:1, event:EVENT, savedAt:new Date().toISOString(),
+      team:{name:st.team.name.trim(), logo:st.team.logo},
+      leader:{name:st.leader.name.trim(), phone:st.leader.phone.trim()},
+      players:st.players.filter(p=>p.ign.trim()).map(p=>({ign:p.ign.trim(), role:p.role, gameId:p.gameId.trim(), photo:p.photo})) };
+    const name='JA-TEAM-'+slug(data.team.name)+'.txt';
+    return new File([JSON.stringify(data)],name,{type:'text/plain'});
+  }
+  function fromFile(d,draft){
+    const s={team:{name:String(d.team&&d.team.name||''),logo:String(d.team&&d.team.logo||'')},
+      leader:{name:String(d.leader&&d.leader.name||''),phone:String(d.leader&&d.leader.phone||'')},players:[]};
+    (d.players||[]).slice(0,MAX).forEach(p=>s.players.push({ign:String(p.ign||''),role:ROLES.some(r=>r[0]===p.role)?p.role:'SUB',gameId:String(p.gameId||''),photo:String(p.photo||'')}));
+    for(let i=s.players.length;i<MAIN;i++) s.players.push({ign:'',role:ROLES[i][0],gameId:'',photo:''});
+    return s;
+  }
+  function say(t,ok){ $('msg').textContent=t; $('msg').className='msg'+(ok?' ok':''); }
+  function download(file){ const a=document.createElement('a'); a.href=URL.createObjectURL(file); a.download=file.name; document.body.appendChild(a); a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000); }
+  function showDone(file,how){
+    $('doneText').textContent=how==='shared'?'Sent. If you chose WhatsApp, check that '+file.name+' arrived in the organiser\'s chat.'
+      :file.name+' is in your downloads. Send it to the organiser on WhatsApp: attach → Document → choose the file.';
+    if(WA){ $('waBtn').hidden=false; $('waBtn').href='https://wa.me/'+WA+'?text='+encodeURIComponent('Team registration: '+st.team.name.trim()+' (file attached)'); }
+    $('done').classList.add('on');
+  }
+  $('sendBtn').addEventListener('click',async()=>{
+    const file=toFile();
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file],title:'Team registration: '+st.team.name.trim()}); showDone(file,'shared'); return; }
+      catch(e){ if(e&&e.name==='AbortError') return; }
+    }
+    download(file); showDone(file,'download');
+  });
+  $('dlBtn').addEventListener('click',()=>{ const f=toFile(); download(f); showDone(f,'download'); });
+  $('copyBtn').addEventListener('click',async()=>{
+    const lines=[(EVENT?EVENT+' — ':'')+'Team: '+(st.team.name.trim()||'?'), 'Leader: '+st.leader.name.trim()+(st.leader.phone.trim()?' ('+st.leader.phone.trim()+')':''), ''];
+    st.players.filter(p=>p.ign.trim()).forEach((p,i)=>lines.push((i+1)+'. '+p.ign.trim()+' — '+(ROLES.find(r=>r[0]===p.role)||ROLES[5])[1]+(p.gameId.trim()?' — ID '+p.gameId.trim():'')));
+    try{ await navigator.clipboard.writeText(lines.join('\n')); say('Roster copied. Photos are only in the team file.',true); }
+    catch(e){ say('Copy is blocked in this browser. Use Download file instead.'); }
+  });
+  $('openBtn').addEventListener('click',()=>$('openFile').click());
+  $('openFile').addEventListener('change',async()=>{ const f=$('openFile').files[0]; $('openFile').value=''; if(!f) return;
+    try{ const d=JSON.parse(await f.text()); if(d.ja!=='team-registration') throw 0; st=fromFile(d); renderAll(); keep(); say('Loaded '+f.name+'. Make your changes, then send it again.',true); }
+    catch(e){ say('That is not a team file from this page.'); } });
+  let armed=false;
+  $('clearBtn').addEventListener('click',e=>{ if(!armed){ armed=true; e.target.textContent='Tap again to clear everything'; setTimeout(()=>{armed=false;e.target.textContent='Start over';},4000); return; }
+    armed=false; e.target.textContent='Start over'; try{localStorage.removeItem(KEY);}catch(x){}
+    st={team:{name:'',logo:''},leader:{name:'',phone:''},players:[]}; for(let i=0;i<MAIN;i++) st.players.push({ign:'',role:ROLES[i][0],gameId:'',photo:''});
+    $('done').classList.remove('on'); say(''); renderAll(); });
+
+  loadDraft(); renderAll();
+})();
+</script>
+</body>
+</html>
