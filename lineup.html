@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1530">
+<meta name="robots" content="noindex">
+<title>Lineup check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1530; --bg2:#0f1c3d; --card:#14244b; --line:#24376a; --ink:#eef2ff; --mute:#9aa8cc;
+  --acc:#e0364f; --ok:#2fbf71; --warn:#f2b544; --bad:#ff5a6e;
+  --EXP:#d23a55; --JUNGLE:#2f9e62; --MID:#8a5cd6; --GOLD:#e0a21b; --ROAM:#3a86d9; --SUB:#6b7796;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:500 16px/1.35 Barlow,system-ui,sans-serif}
+.disp{font-family:"Chakra Petch",Barlow,sans-serif;letter-spacing:.02em}
+.wrap{max-width:560px;margin:0 auto;padding:14px 14px 120px}
+.top{display:flex;align-items:center;gap:12px;padding:6px 0 12px;border-bottom:1px solid var(--line)}
+.top img{width:58px;height:58px;border-radius:12px;object-fit:contain;background:#fff1;flex:none}
+.top .ini{width:58px;height:58px;border-radius:12px;background:var(--card);display:grid;place-items:center;font:700 22px "Chakra Petch";flex:none}
+.top .ev{font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+.top .tn{font-size:24px;font-weight:700;line-height:1.1;word-break:break-word}
+.chips{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+.chip{font:700 11px/1 "Chakra Petch";padding:4px 7px;border-radius:6px;background:var(--card);color:var(--mute);text-transform:uppercase}
+.chip.blue{background:#1d4ed8;color:#fff}.chip.red{background:#b91c1c;color:#fff}
+.net{margin-left:auto;font-size:11px;color:var(--mute);display:flex;align-items:center;gap:5px;flex:none}
+.net i{width:8px;height:8px;border-radius:50%;background:var(--warn)}
+.net.on i{background:var(--ok)}.net.off i{background:var(--bad)}
+.help{margin:12px 0 8px;color:var(--mute);font-size:15px}
+.help b{color:var(--ink)}
+.banner{border-radius:12px;padding:12px 14px;margin:12px 0;font-weight:600;display:none}
+.banner.show{display:block}
+.banner.ok{background:#2fbf7122;border:1px solid var(--ok);color:#bff3d6}
+.banner.warn{background:#f2b54422;border:1px solid var(--warn);color:#ffe7b0}
+.banner.bad{background:#ff5a6e22;border:1px solid var(--bad);color:#ffd0d6}
+.banner small{display:block;font-weight:500;opacity:.85;margin-top:2px}
+h3{font:700 13px "Chakra Petch";color:var(--mute);letter-spacing:.12em;margin:16px 0 6px;text-transform:uppercase}
+.row{display:flex;align-items:stretch;gap:8px;margin:7px 0}
+.lane{width:74px;flex:none;border-radius:10px;display:grid;place-items:center;font:700 13px "Chakra Petch";color:#fff;text-align:center}
+.card{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:var(--card);border:2px solid transparent;border-radius:12px;padding:7px 10px;cursor:pointer;user-select:none;transition:border-color .12s,transform .12s}
+.card:active{transform:scale(.985)}
+.card.sel{border-color:var(--warn);box-shadow:0 0 0 3px #f2b54433}
+.card.locked{cursor:default}
+.card img,.card .ph{width:48px;height:48px;border-radius:50%;object-fit:cover;object-position:top;background:#0006;flex:none}
+.card .ph{display:grid;place-items:center;color:var(--mute);font:700 18px "Chakra Petch"}
+.card .nm{font-weight:700;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .sub{font-size:13px;color:var(--mute);word-break:break-word}
+.card .warnrole{font-size:13px;color:var(--warn);font-weight:700}
+.tag{margin-left:auto;font:700 10px/1 "Chakra Petch";padding:4px 6px;border-radius:5px;flex:none}
+.tag.in{background:var(--ok);color:#03210f}.tag.mv{background:var(--warn);color:#2b1c00}
+.bench .card{border-style:dashed;border-color:var(--line);background:var(--bg2)}
+.bench .card.sel{border-style:solid;border-color:var(--warn)}
+.empty{color:var(--mute);font-size:14px;padding:6px 2px}
+.tools{display:flex;gap:8px;margin-top:10px}
+button{font:700 15px "Chakra Petch";border:0;border-radius:10px;padding:12px 14px;cursor:pointer;color:var(--ink);background:var(--card)}
+button:disabled{opacity:.45;cursor:default}
+.who{margin-top:16px}
+.who label{font-size:13px;color:var(--mute);display:block;margin-bottom:4px}
+.who input{width:100%;font:600 17px Barlow;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);color:var(--ink)}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 30%)}
+.bar .in{max-width:560px;margin:0 auto}
+.go{width:100%;padding:17px;font-size:19px;background:var(--ok);color:#03210f;border-radius:14px;box-shadow:0 6px 20px #0006}
+.go.again{background:var(--card);color:var(--ink)}
+.msg{min-height:100vh;display:grid;place-items:center;text-align:center;padding:30px}
+.msg h2{font:700 24px "Chakra Petch";margin:0 0 8px}
+.msg p{color:var(--mute);margin:0}
+.foot{text-align:center;color:var(--mute);font-size:11px;margin-top:22px;letter-spacing:.08em}
+/* roster editing (group stage: lineup.allowEdit) */
+.ed{flex:none;margin-left:6px;width:34px;height:34px;padding:0;border-radius:9px;background:var(--bg2);font-size:15px}
+.tag.new{background:#3a86d9;color:#fff}
+.addp{width:100%;margin-top:8px;background:transparent;border:2px dashed var(--line);color:var(--ink)}
+.sheet{position:fixed;inset:0;background:#000a;display:flex;align-items:flex-end;justify-content:center;z-index:8}
+.sheet .box{width:100%;max-width:560px;background:var(--bg2);border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.sheet h4{margin:0 0 12px;font:700 20px "Chakra Petch"}
+.sheet label{font-size:13px;color:var(--mute);display:block;margin:10px 0 4px}
+.sheet input[type=text]{width:100%;font:600 17px Barlow;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.sheet .phrow{display:flex;align-items:center;gap:12px}
+.sheet .phrow img,.sheet .phrow .ph{width:72px;height:72px;border-radius:50%;object-fit:cover;object-position:top;background:#0006;display:grid;place-items:center;color:var(--mute)}
+.sheet .act{display:flex;gap:8px;margin-top:16px}.sheet .act button{flex:1}
+.sheet .ok{background:var(--ok);color:#03210f}.sheet .rm{background:#ff5a6e33;color:#ffd0d6}
+.sheet .note{font-size:13px;color:var(--mute);margin-top:8px}
+#toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-80px);background:#000c;color:#fff;padding:10px 16px;border-radius:10px;font-weight:600;transition:transform .2s;z-index:9}
+#toast.show{transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div id="app"><div class="msg"><div><h2 class="disp">Loading lineup…</h2><p>Please wait</p></div></div></div>
+<div id="toast"></div>
+<script type="module">
+// ===================================================================
+//  MLBB lineup check: the team leader confirms who plays which lane.
+//  Hosted in ja-register (lineup.html). Data: Firebase Realtime Database, project
+//  ja-scoring-system, ONLY the mlbb/ branch (the sports scoring is not touched):
+//    mlbb/lineup/<code>   written by the JA ESPORT console (login mlbb@)
+//    mlbb/confirm/<code>  written here by the team leader (no login)
+//  The <code> in the QR link is random, so only that team can open it.
+//  ?demo=1 runs with sample data and no Firebase.
+// ===================================================================
+const qs = new URLSearchParams(location.search);
+const CODE = (qs.get("c") || "").trim();
+const DEMO = qs.get("demo") === "1";
+const LOCAL = qs.get("local") === "1" && !!window.opener;   // opened by the console's "Show to leader" (no internet needed)
+const SIDE = qs.get("side") || "";
+const firebaseConfig = {
+  apiKey: "AIzaSyAGIMpCdDe9WQJEc4aLaJQTvfcEYKyFXXI",
+  authDomain: "ja-scoring-system.firebaseapp.com",
+  databaseURL: "https://ja-scoring-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ja-scoring-system",
+  appId: "1:674691787189:web:7d01dbba44e95c578751fc"
+};   // public web config (safe to publish); only the mlbb/ branch is used here
+const LANES_DEFAULT = ["EXP", "JUNGLE", "MID", "GOLD", "ROAM"];
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const toast = (m, ms = 2200) => { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), ms); };
+const store = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
+const arr = v => Array.isArray(v) ? v.filter(Boolean) : v && typeof v === "object" ? Object.keys(v).sort((a, b) => a - b).map(k => v[k]).filter(Boolean) : [];
+const hhmm = t => { try { return new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); } catch (e) { return ""; } };
+
+// ---------- state ----------
+let lineup = null;      // from the console
+let confirmed = null;   // last confirmation in the database
+let order = [];         // ign per lane (index = lane)
+let bench = [];         // ign
+let sel = null;         // {where:'s'|'b', i}
+let editing = true;     // false once confirmed (until "Change")
+let online = null;
+let api = null;         // {saveConfirm(obj)}
+let R = [];             // roster being edited: {ign, role, photo, gameId, isNew, newPhoto, was}
+let edited = false;     // the leader added / renamed / removed a player or changed a photo
+const allowEdit = () => !!(lineup && lineup.allowEdit);
+
+const fromLineup = ign => arr(lineup?.starters).concat(arr(lineup?.bench)).find(p => p.ign === ign);
+function byIgn(ign) {
+  return R.find(p => p.ign === ign) || fromLineup(ign) || { ign };
+}
+function resetFromLineup() {
+  order = arr(lineup.starters).map(p => p.ign);
+  bench = arr(lineup.bench).map(p => p.ign);
+  R = arr(lineup.starters).concat(arr(lineup.bench)).map(p => ({ ...p }));
+  edited = false;
+  sel = null;
+}
+function applyConfirmOrder(c) {
+  if (arr(c.roster).length) {
+    R = arr(c.roster).map(x => { const L = fromLineup(x.ign) || {};
+      return { ...L, ign: x.ign, role: x.role || L.role || "", photo: x.photo || L.photo || "", isNew: !!x.new, newPhoto: !!x.photo }; });
+    edited = true;
+  }
+  const all = new Set(R.length ? R.map(p => p.ign) : arr(lineup.starters).concat(arr(lineup.bench)).map(p => p.ign));
+  const o = arr(c.order);
+  if (o.length && o.every(x => all.has(x))) {
+    order = o;
+    bench = [...all].filter(x => !o.includes(x));
+  }
+}
+function lanes() { const l = arr(lineup?.lanes); return l.length >= order.length ? l : LANES_DEFAULT; }
+function changes() {
+  const orig = arr(lineup.starters).map(p => p.ign);
+  return order.map((ign, i) => !orig.includes(ign) ? "in" : orig[i] !== ign ? "mv" : "");
+}
+
+// ---------- render ----------
+function render() {
+  if (!lineup) return;
+  const L = lanes(), ch = changes();
+  const t = lineup.team || {};
+  const side = String(lineup.side || "").toLowerCase();
+  const stale = confirmed && Number(confirmed.rev) !== Number(lineup.rev);
+  const isOk = confirmed && !stale;
+  const ini = String(t.name || "?").split(/\s+/).map(w => w[0]).join("").slice(0, 3).toUpperCase();
+
+  const card = (ign, where, i) => {
+    const p = byIgn(ign);
+    const isSel = sel && sel.where === where && sel.i === i;
+    const role = p.isNew && where === "s" ? "" : String(p.role || "").toUpperCase();
+    const laneHere = where === "s" ? L[i] : null;
+    const mismatch = role && laneHere && role !== "SUB" && role !== laneHere;
+    const roleNote = role && !mismatch ? ` · ${esc(role)}` : "";
+    const warn = mismatch ? `<div class="warnrole">⚠ Registered as ${esc(role)}</div>` : "";
+    const id = p.gameId ? `ID ${esc(p.gameId)}` : "";
+    const tag = p.isNew ? '<span class="tag new">NEW</span>' : where === "s" && ch[i] === "in" ? '<span class="tag in">IN</span>' : where === "s" && ch[i] === "mv" ? '<span class="tag mv">MOVED</span>' : "";
+    const edBtn = editing && allowEdit() && ign && ign !== "—" ? `<button class="ed" data-ed="${where}:${i}" title="Change this player">✏</button>` : "";
+    const pic = p.photo ? `<img src="${esc(p.photo)}" alt="">` : `<div class="ph">${esc(String(ign).slice(0, 1).toUpperCase())}</div>`;
+    return `<div class="card${isSel ? " sel" : ""}${editing ? "" : " locked"}" data-w="${where}" data-i="${i}">
+      ${pic}<div style="min-width:0"><div class="nm">${esc(ign)}</div><div class="sub">${id}${id ? roleNote : roleNote.replace(/^ · /, "")}</div>${warn}</div>${tag}${edBtn}</div>`;
+  };
+
+  const rows = order.map((ign, i) => `<div class="row"><div class="lane" style="background:var(--${esc(L[i])},#6b7796)">${esc(L[i])}</div>${card(ign, "s", i)}</div>`).join("");
+  const benchHtml = bench.length ? bench.map((ign, i) => `<div class="row">${card(ign, "b", i)}</div>`).join("") : '<div class="empty">No subs registered.</div>';
+  const leaderName = store("ja-lineup-by") || lineup.leader || "";
+
+  let banner = "";
+  if (isOk && !editing) banner = `<div class="banner ok show">✅ Confirmed by ${esc(confirmed.by)} at ${hhmm(confirmed.at)}<small>${LOCAL ? "Thank you! Please hand the laptop back to the organiser." : "The organiser can see this now. You can close this page."}</small></div>`;
+  else if (stale) banner = `<div class="banner warn show">⚠ The organiser changed the lineup<small>Please check every lane again and confirm.</small></div>`;
+  if (online === false) banner += `<div class="banner bad show">No internet connection<small>Your confirmation will be sent when the connection comes back.</small></div>`;
+
+  $("#app").innerHTML = `<div class="wrap">
+    <div class="top">
+      ${t.logo ? `<img src="${esc(t.logo)}" alt="">` : `<div class="ini">${esc(ini)}</div>`}
+      <div style="min-width:0">
+        <div class="ev">${esc(lineup.event || "Lineup check")}</div>
+        <div class="tn disp">${esc(t.name || "Team")}</div>
+        <div class="chips">${lineup.label ? `<span class="chip">${esc(lineup.label)}</span>` : ""}${lineup.game ? `<span class="chip">Game ${esc(lineup.game)}</span>` : ""}${side ? `<span class="chip ${side === "blue" ? "blue" : side === "red" ? "red" : ""}">${esc(side)} side</span>` : ""}</div>
+      </div>
+      <div class="net ${online ? "on" : online === false ? "off" : ""}"><i></i>${LOCAL ? "Laptop" : online ? "Live" : online === false ? "Offline" : "…"}</div>
+    </div>
+    ${banner}
+    ${editing ? `<div class="help">Check that <b>each player is in the right lane</b>. Wrong? <b>Tap two players to swap them</b>, or tap a sub and then a player to bring the sub in.${allowEdit() ? ` A player can't come? Tap <b>＋ Add player</b>, then swap the new player in. <b>✏</b> changes a name or photo.` : ""}</div>`
+              : `<div class="help">This is your confirmed lineup for this game.</div>`}
+    <h3>Playing</h3>${rows}
+    <h3>Subs</h3><div class="bench">${benchHtml}</div>
+    ${editing && allowEdit() ? (R.length < 8 ? `<button class="addp" id="addp">＋ Add player</button>` : `<div class="empty">8 players is the maximum.</div>`) : ""}
+    ${editing ? `<div class="tools"><button id="undo" ${ch.some(Boolean) || edited ? "" : "disabled"}>↺ Undo my changes</button></div>
+    <div class="who"><label for="by">Your name (team leader)</label><input id="by" maxlength="40" autocomplete="name" value="${esc(leaderName)}" placeholder="Name"></div>` : ""}
+    <div class="foot">JA ESPORT · JUJI-ATELIER</div>
+  </div>
+  <div class="bar"><div class="in">${editing
+      ? `<button class="go" id="go">✅ CONFIRM LINEUP</button>`
+      : `<button class="go again" id="edit">✏ Change lineup</button>`}</div></div>`;
+
+  document.querySelectorAll(".card").forEach(el => el.onclick = ev => {
+    const ed = ev.target.closest(".ed");
+    if (ed) { ev.stopPropagation(); const [w, i] = ed.dataset.ed.split(":"); openSheet(w === "s" ? order[+i] : bench[+i], w); return; }
+    tap(el.dataset.w, Number(el.dataset.i));
+  });
+  $("#addp") && ($("#addp").onclick = () => openSheet(null));
+  $("#undo") && ($("#undo").onclick = () => { resetFromLineup(); render(); });
+  $("#go") && ($("#go").onclick = doConfirm);
+  $("#edit") && ($("#edit").onclick = () => { editing = true; render(); });
+  $("#by") && ($("#by").oninput = e => store("ja-lineup-by", e.target.value));
+}
+
+function tap(where, i) {
+  if (!editing) return;
+  if (!sel) { sel = { where, i }; render(); return; }
+  const a = sel, b = { where, i }; sel = null;
+  if (a.where === b.where && a.i === b.i) { render(); return; }
+  if (a.where === "b" && b.where === "b") { sel = b; render(); return; }   // two subs: just move the selection
+  const get = x => x.where === "s" ? order[x.i] : bench[x.i];
+  const put = (x, v) => { if (x.where === "s") order[x.i] = v; else bench[x.i] = v; };
+  const va = get(a), vb = get(b);
+  put(a, vb); put(b, va);
+  render();
+  if (navigator.vibrate) navigator.vibrate(15);
+}
+
+async function doConfirm() {
+  const by = ($("#by")?.value || "").trim();
+  if (!by) { toast("Please type your name first"); $("#by")?.focus(); return; }
+  store("ja-lineup-by", by);
+  const ch = changes();
+  if (order.some(n => !n || n === "—")) { toast("Every lane needs a player — tap a sub, then the empty lane", 3500); return; }
+  const obj = { rev: Number(lineup.rev) || 1, by: by.slice(0, 40), order: order.slice(), bench: bench.slice(), changed: ch.some(Boolean) || edited };
+  if (edited) {
+    const L = lanes();
+    obj.edited = true;
+    obj.roster = order.concat(bench).map(n => { const p = byIgn(n), i = order.indexOf(n), o = { ign: n, role: i >= 0 ? (L[i] || "") : "SUB" };
+      if (p.isNew) o.new = true;
+      if (p.newPhoto && p.photo) o.photo = p.photo;
+      return o; });
+  }
+  const btn = $("#go"); if (btn) { btn.disabled = true; btn.textContent = "Sending…"; }
+  try {
+    await api.saveConfirm(obj);
+    editing = false;
+    toast("Lineup confirmed ✅");
+    if (navigator.vibrate) navigator.vibrate([20, 40, 20]);
+  } catch (e) {
+    console.error(e);
+    toast("Could not send. Check the internet and try again.", 3500);
+  }
+  render();
+}
+
+// ---------- add / change a player (group stage) ----------
+function resizePhoto(file) {
+  return new Promise((ok, no) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => { const k = Math.min(1, 700 / Math.max(im.width, im.height)), c = document.createElement("canvas");
+      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); ok(c.toDataURL("image/jpeg", 0.82)); };
+    im.onerror = () => { URL.revokeObjectURL(url); no(new Error("not an image")); };
+    im.src = url;
+  });
+}
+function openSheet(ign, where) {
+  const p = ign ? byIgn(ign) : null;
+  let photo = p ? p.photo || "" : "", photoChanged = false;
+  const d = document.createElement("div"); d.className = "sheet";
+  const draw = () => {
+    d.innerHTML = `<div class="box"><h4>${p ? "Change player" : "Add a player"}</h4>
+      <label>In-game name</label><input type="text" id="sh-n" maxlength="40" value="${esc(p ? p.ign : "")}" placeholder="Exactly as in the game">
+      <label>Photo (optional)</label><div class="phrow">${photo ? `<img src="${esc(photo)}" alt="">` : `<div class="ph">📷</div>`}
+        <button id="sh-ph">${photo ? "Change photo" : "Choose photo"}</button><input type="file" id="sh-f" accept="image/*" hidden></div>
+      ${p ? "" : `<div class="note">The new player goes to Subs. Then tap them and the player they replace.</div>`}
+      <div class="act">${p && where === "b" ? `<button class="rm" id="sh-rm">Remove</button>` : ""}<button id="sh-x">Cancel</button><button class="ok" id="sh-ok">${p ? "Save" : "Add"}</button></div>
+      ${p && where === "s" ? `<div class="note">To remove this player, swap them to Subs first.</div>` : ""}</div>`;
+    const nm = d.querySelector("#sh-n"), keep = nm.value;
+    d.querySelector("#sh-ph").onclick = () => d.querySelector("#sh-f").click();
+    d.querySelector("#sh-f").onchange = async e => { const f = e.target.files[0]; if (!f) return;
+      try { const v = nm.value; photo = await resizePhoto(f); photoChanged = true; draw(); d.querySelector("#sh-n").value = v; } catch (er) { toast("That file is not a photo"); } };
+    d.querySelector("#sh-x").onclick = () => d.remove();
+    d.onclick = e => { if (e.target === d) d.remove(); };
+    d.querySelector("#sh-rm") && (d.querySelector("#sh-rm").onclick = () => {
+      R = R.filter(x => x.ign !== p.ign); bench = bench.filter(x => x !== p.ign); edited = true; sel = null; d.remove(); render(); });
+    d.querySelector("#sh-ok").onclick = () => {
+      const name = d.querySelector("#sh-n").value.replace(/\s+/g, " ").trim();
+      if (!name) { toast("Type the in-game name"); return; }
+      if (R.some(x => x !== p && x.ign.toLowerCase() === name.toLowerCase())) { toast("This name is already in the team"); return; }
+      if (!p) { R.push({ ign: name, role: "SUB", photo, isNew: true, newPhoto: !!photo }); bench.push(name); }
+      else {
+        const old = p.ign;
+        if (name !== old) { p.ign = name; p.isNew = true; p.was = old; order = order.map(x => x === old ? name : x); bench = bench.map(x => x === old ? name : x); }
+        if (photoChanged) { p.photo = photo; p.newPhoto = true; }
+        if (!R.includes(p)) R.push(p);
+      }
+      edited = true; sel = null; d.remove(); render();
+    };
+    void keep;
+  };
+  draw(); document.body.appendChild(d);
+  setTimeout(() => d.querySelector("#sh-n")?.focus(), 50);
+}
+
+function showMsg(h, p) { $("#app").innerHTML = `<div class="msg"><div><h2 class="disp">${esc(h)}</h2><p>${esc(p)}</p></div></div>`; }
+
+// ---------- data from the console ----------
+function onLineup(v) {
+  if (!v) { lineup = null; showMsg("This link is not active", "Ask the organiser to show the QR code again."); return; }
+  const first = !lineup;
+  const revChanged = lineup && Number(lineup.rev) !== Number(v.rev);
+  lineup = v;
+  if (first || revChanged) {
+    resetFromLineup();
+    if (confirmed && Number(confirmed.rev) === Number(v.rev)) { applyConfirmOrder(confirmed); editing = false; }
+    else editing = true;
+  }
+  render();
+}
+let gotConfirm = false;
+function onConfirm(v) {
+  const firstTime = !gotConfirm; gotConfirm = true;
+  confirmed = v || null;
+  if (!lineup) return;
+  if (firstTime && confirmed && Number(confirmed.rev) === Number(lineup.rev)) { editing = false; applyConfirmOrder(confirmed); render(); return; }
+  if (!confirmed) { if (!editing) { editing = true; resetFromLineup(); } }        // organiser cleared it
+  else if (Number(confirmed.rev) === Number(lineup.rev) && !editing) applyConfirmOrder(confirmed);
+  render();
+}
+
+// ---------- start ----------
+if (DEMO) {
+  const ph = (c, t) => "data:image/svg+xml," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='${c}'/><text x='32' y='41' font-size='26' text-anchor='middle' fill='#fff' font-family='sans-serif'>${t}</text></svg>`);
+  const demo = {
+    v: 1, rev: 1, event: "E-Sport HQ Championship", label: "Group A · A5 · Round 1", allowEdit: true, leader: "Asdee",
+    team: { name: "HRKT", logo: "" }, lanes: LANES_DEFAULT,
+    starters: [
+      { ign: "Asdee", role: "EXP", gameId: "123456789 (2101)", photo: ph("#d23a55", "A") },
+      { ign: "Kiki", role: "JUNGLE", gameId: "223344556 (2203)", photo: ph("#2f9e62", "K") },
+      { ign: "Bomba", role: "MID", gameId: "998877665 (2011)", photo: "" },
+      { ign: "Lads", role: "GOLD", gameId: "554433221 (2110)", photo: ph("#e0a21b", "L") },
+      { ign: "Gojiro", role: "ROAM", gameId: "", photo: ph("#3a86d9", "G") }],
+    bench: [{ ign: "Sukoo", role: "SUB", gameId: "101010101 (2002)", photo: "" }]
+  };
+  api = { saveConfirm: async o => { window._last = o; await new Promise(r => setTimeout(r, 300)); onConfirm({ ...o, at: Date.now() }); } };
+  online = true;
+  onLineup(demo);
+} else if (LOCAL) {
+  api = { saveConfirm: async o => { window.opener.postMessage({ type: "ja-lineup-confirm", side: SIDE, obj: o }, location.origin); } };
+  online = true;
+  window.addEventListener("message", e => {
+    if (e.origin !== location.origin) return;
+    const d = e.data || {};
+    if (d.type !== "ja-lineup" || d.side !== SIDE) return;
+    onLineup(d.lineup || null);
+    onConfirm(d.confirm || null);
+  });
+  window.opener.postMessage({ type: "ja-lineup-ready", side: SIDE }, location.origin);
+} else if (!/^[A-Za-z0-9_-]{8,24}$/.test(CODE)) {
+  showMsg("Open the link from the QR code", "This page needs the code from the organiser's QR.");
+} else {
+  try {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    const D = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
+    const app = initializeApp(firebaseConfig, "ja-mlbb-lineup");
+    const db = D.getDatabase(app);
+    api = { saveConfirm: o => D.set(D.ref(db, "mlbb/confirm/" + CODE), { ...o, at: D.serverTimestamp() }) };
+    D.onValue(D.ref(db, ".info/connected"), s => { online = !!s.val(); render(); });
+    D.onValue(D.ref(db, "mlbb/confirm/" + CODE), s => onConfirm(s.val()), e => console.warn(e));
+    D.onValue(D.ref(db, "mlbb/lineup/" + CODE), s => onLineup(s.val()),
+      e => { console.warn(e); showMsg("This link is not active", "Ask the organiser to show the QR code again."); });
+  } catch (e) {
+    console.error(e);
+    showMsg("Could not connect", "Check your internet connection and reload this page.");
+  }
+}
+</script>
+</body>
+</html>
