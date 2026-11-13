@@ -87,6 +87,7 @@
   .bye{color:var(--mist);font-size:12.5px;margin:2px 6px}
   .tbn{font-size:11.5px;color:var(--crown);font-weight:500;line-height:1.3;margin-top:2px}
   .tbn.bad{color:#ffb4a8;font-weight:700}
+  .tbrow{border-color:rgba(242,182,50,.35)}
   .coin{margin-top:4px;min-height:28px;padding:3px 9px;font-size:12px;border-color:var(--crown);color:var(--crown)}
   .tbsel{display:grid;grid-template-columns:120px 1fr;gap:10px 14px;align-items:center;padding:14px}
   .tbsel select{max-width:360px;width:100%}
@@ -236,7 +237,7 @@ function draw(st){
       if (a && b) st.gm.push({id:g+"-"+(r+1)+"-"+a+"-"+b, g, r:r+1, a, b, w:null, ka:0, kb:0, da:0, db:0});
     }));
   }
-  st.br = {}; st.reports = []; st.teams.forEach(t=>{delete t.otb; delete t.otbHow;});
+  st.br = {}; st.reports = []; st.tbm = [];
 }
 function roundRobin(ids){
   const t = ids.slice(); if (t.length % 2) t.push(null);
@@ -257,7 +258,7 @@ const TB = {h2h:{label:"Wins vs tied teams (head-to-head)",short:"head-to-head"}
 const DEFAULT_TB = ["h2h","kills","deaths","none"];
 const tbList = () => ((S.rules&&S.rules.tb)||DEFAULT_TB).filter(k=>TB[k]&&k!=="none");
 function standings(g){
-  const rows = S.teams.filter(t=>t.group===g).map(t=>({id:t.id, p:0, w:0, l:0, pts:0, k:0, d:0, kd:0, h2h:0, org:t.otb||0, note:"", unresolved:false}));
+  const rows = S.teams.filter(t=>t.group===g).map(t=>({id:t.id, p:0, w:0, l:0, pts:0, k:0, d:0, kd:0, h2h:0, org:0, how:"", note:"", unresolved:false}));
   const R = Object.fromEntries(rows.map(r=>[r.id,r]));
   for (const m of S.gm) if (m.g===g && m.w){
     const A=R[m.a], B=R[m.b]; A.p++; B.p++;
@@ -265,6 +266,7 @@ function standings(g){
     if (m.w==="a"){A.w++;A.pts++;B.l++;} else {B.w++;B.pts++;A.l++;}
   }
   rows.forEach(r=>r.kd=r.k-r.d);
+  let n=0; (S.tbm||[]).forEach(e=>{ if (e.g===g && e.w && R[e.w]) { R[e.w].org=++n; R[e.w].how=e.kind; } });
   const crit = tbList().concat("org");   // last: organiser decision (coin toss)
   const val = (r,c) => c==="h2h"?r.h2h : c==="kd"?r.kd : c==="kills"?r.k : c==="org"?r.org : -r.d;
   const show = (r,c) => c==="h2h"?r.h2h+(r.h2h===1?" win":" wins") : c==="kd"?(r.kd>0?"+":"")+r.kd : c==="kills"?r.k+" kills" : r.d+" deaths";
@@ -279,7 +281,7 @@ function standings(g){
       tied.sort((x,y)=>{ for (const c of crit){ const d=val(y,c)-val(x,c); if (d) return d; } return 0; });
       for (let k=0;k<tied.length-1;k++){
         const up=tied[k], dn=tied[k+1], c=crit.find(c=>val(up,c)!==val(dn,c));
-        if (c==="org") up.note=(up.note?up.note+"; ":"")+"above "+T(dn.id).name+" by "+(T(up.id).otbHow==="game"?"winning the tiebreaker game":"the organiser's coin toss");
+        if (c==="org") up.note=(up.note?up.note+"; ":"")+"above "+T(dn.id).name+" by "+(up.how==="game"?"winning the tiebreaker game":"the organiser's coin toss");
         else if (c) up.note=(up.note?up.note+"; ":"")+"above "+T(dn.id).name+" on "+TB[c].short+" ("+show(up,c)+" vs "+show(dn,c)+")";
         else { up.unresolved=dn.unresolved=true; up.note=(up.note?up.note+"; ":"")+"level with "+T(dn.id).name+" on every tie-break: organiser decides"; }
       }
@@ -323,7 +325,7 @@ function rGroups(){
     h += `<div class="card"><h3><span class="g" style="background:${GCOL[g]}">${g}</span>GROUP ${g}${groupDone(g)?' <span class="sub" style="margin-left:auto">complete</span>':''}</h3>
       <table><tr><th>#</th><th class="l">TEAM</th><th>P</th><th>W</th><th>L</th><th>K</th><th>D</th><th>PTS</th></tr>`;
     st.forEach((r,i)=>{ h += `<tr class="${i<2?'q':''}"><td class="rk">${i+1}</td><td class="l"><span class="tn">${name(r.id)}</span>${(()=>{ const imp = r.unresolved && i<=2 && st.some((x,j)=>j!==i && j<=2 && x.unresolved && x.pts===r.pts);
-   return (r.note?`<div class="tbn${imp?' bad':''}">${imp?'⚠ ':'↳ '}${esc(imp||!r.unresolved?r.note:r.note.replace('organiser decides','no effect on qualifying'))}</div>`:'') + (imp?`<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="sm coin" data-coin="${g}|${r.id}|game">Won the tiebreaker game ⬆</button><button class="sm coin" data-coin="${g}|${r.id}|coin">Won the coin toss ⬆</button></div>`:''); })()}</td><td>${r.p}</td><td>${r.w}</td><td>${r.l}</td><td>${r.k}</td><td>${r.d}</td><td class="pts">${r.pts}</td></tr>`; });
+   return (r.note?`<div class="tbn${imp?' bad':''}">${imp?'⚠ ':'↳ '}${esc(imp||!r.unresolved?r.note:r.note.replace('organiser decides','no effect on qualifying'))}</div>`:'') + (imp?(tbPending(r.id)?`<div class="tbn" style="color:var(--mist)">⏳ tiebreaker game scheduled (see TIEBREAKER below)</div>`:`<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="sm coin" data-tbg="${g}|${r.id}">Schedule tiebreaker game</button><button class="sm coin" data-coin="${g}|${r.id}">Won the coin toss ⬆</button></div>`):''); })()}</td><td>${r.p}</td><td>${r.w}</td><td>${r.l}</td><td>${r.k}</td><td>${r.d}</td><td class="pts">${r.pts}</td></tr>`; });
     h += `</table><div class="matches">`;
     for (let r=1;r<=5;r++){
       h += `<div class="rnd">ROUND ${r}</div>`;
@@ -338,6 +340,15 @@ function rGroups(){
       const bye = S.teams.filter(t=>t.group===g && !ids.has(t.id));
       if (bye.length) h += `<div class="bye">Bye: ${bye.map(t=>esc(t.name)).join(", ")}</div>`;
     }
+    const tbs = (S.tbm||[]).filter(e=>e.g===g);
+    if (tbs.length){
+      h += `<div class="rnd" style="color:var(--crown)">TIEBREAKER</div>`;
+      tbs.forEach(e => {
+        if (e.kind==="coin") h += `<div class="m tbrow" data-tbm="${e.id}"><span class="a w">${name(e.w)}</span><span class="s" style="color:var(--crown)">COIN TOSS</span><span class="b" style="color:var(--mist)">won the toss</span></div>`;
+        else h += `<div class="m tbrow" data-tbm="${e.id}"><span class="a ${e.w===e.a?'w':e.w?'l':''}">${name(e.a)}</span><span class="s">${e.w?(e.ka||e.kb?e.ka+' – '+e.kb:'DONE'):'vs'}</span><span class="b ${e.w===e.b?'w':e.w?'l':''}">${name(e.b)}</span></div>`;
+      });
+      h += `<div class="bye">Tiebreakers decide places only. They don't count in points, kills or deaths.</div>`;
+    }
     h += `</div></div>`;
   }
   $("#tab-groups").innerHTML = h + `</div>`;
@@ -345,9 +356,40 @@ function rGroups(){
   $("#redraw").onclick = () => { if (confirm("Make a new group draw? All results will be cleared.")) { draw(S); save(); } };
   $("#reset").onclick = () => { if (confirm("Reset the whole demo?")) { S = fresh(); save(); } };
   document.querySelectorAll("[data-gm]").forEach(el => el.onclick = () => openGame(el.dataset.gm));
-  document.querySelectorAll("[data-coin]").forEach(b => b.onclick = () => { const [g,id,how]=b.dataset.coin.split("|");
-    T(id).otb = Math.max(0,...S.teams.filter(x=>x.group===g).map(x=>x.otb||0))+1; T(id).otbHow = how;
-    (S.rulesLog=S.rulesLog||[]).push({at:Date.now(),from:[],to:[],note:(how==="game"?"Tiebreaker game":"Coin toss")+": "+T(id).name+" (Group "+g+")"}); save(); });
+  document.querySelectorAll("[data-coin]").forEach(b => b.onclick = () => { const [g,id]=b.dataset.coin.split("|");
+    (S.tbm=S.tbm||[]).push({id:"TC-"+Date.now().toString(36), kind:"coin", g, w:id}); logTb("Coin toss: "+T(id).name+" (Group "+g+")"); save(); });
+  document.querySelectorAll("[data-tbg]").forEach(b => b.onclick = () => { const [g,id]=b.dataset.tbg.split("|");
+    const st = standings(g), me = st.find(r=>r.id===id);
+    const opp = st.filter((r,i)=>r.id!==id && r.unresolved && i<=2 && r.pts===me.pts && !tbPending(r.id)).map(r=>r.id);
+    if (!opp.length){ alert("No other tied team is free for a tiebreaker game."); return; }
+    const make = o => { (S.tbm=S.tbm||[]).push({id:"TB-"+Date.now().toString(36), kind:"game", g, a:id, b:o, w:null, ka:0, kb:0}); logTb("Tiebreaker game scheduled: "+T(id).name+" vs "+T(o).name+" (Group "+g+")"); save(); };
+    if (opp.length===1){ make(opp[0]); return; }
+    const f = $("#dlgForm");
+    f.innerHTML = `<h4>Tiebreaker game · Group ${g}</h4><p class="sub">${name(id)} plays against:</p><div class="pick" style="grid-template-columns:1fr">${opp.map(o=>`<button type="button" data-op="${o}">${name(o)}</button>`).join("")}</div><div class="ft"><button value="cancel" class="ghost">Cancel</button></div>`;
+    f.querySelectorAll("[data-op]").forEach(x => x.onclick = () => { $("#dlg").close(); make(x.dataset.op); });
+    $("#dlg").showModal(); });
+  document.querySelectorAll("[data-tbm]").forEach(el => el.onclick = () => openTb(el.dataset.tbm));
+}
+const tbPending = id => (S.tbm||[]).find(e=>e.kind==="game" && !e.w && (e.a===id||e.b===id));
+function logTb(note){ (S.rulesLog=S.rulesLog||[]).push({at:Date.now(),from:[],to:[],note}); }
+function openTb(id){
+  const e = (S.tbm||[]).find(x=>x.id===id); if (!e) return;
+  const f = $("#dlgForm");
+  if (e.kind==="coin"){
+    f.innerHTML = `<h4>Coin toss · Group ${e.g}</h4><p class="sub">${name(e.w)} won the organiser's coin toss.</p><div class="ft"><button type="button" id="del" class="ghost">Remove</button><button value="cancel" class="pri">Close</button></div>`;
+    f.querySelector("#del").onclick = () => { S.tbm=S.tbm.filter(x=>x.id!==id); logTb("Coin toss removed: "+T(e.w).name); $("#dlg").close(); save(); };
+    $("#dlg").showModal(); return;
+  }
+  let w = e.w;
+  f.innerHTML = `<h4>Tiebreaker game · Group ${e.g}</h4><p class="sub">BO1. The winner goes above the other team. Kills are optional and don't count in the group table.</p>
+    <div class="pick"><button type="button" data-w="${e.a}" class="${w===e.a?'sel':''}">${name(e.a)}</button><button type="button" data-w="${e.b}" class="${w===e.b?'sel':''}">${name(e.b)}</button></div>
+    <div class="kgrid" style="grid-template-columns:1fr auto"><span class="h">TEAM</span><span class="h">KILLS</span><span>${name(e.a)}</span><input type="number" min="0" id="tka" value="${e.ka||0}"><span>${name(e.b)}</span><input type="number" min="0" id="tkb" value="${e.kb||0}"></div>
+    <div class="ft"><button type="button" id="del" class="ghost">Delete</button><button value="cancel" class="ghost">Cancel</button><button type="button" id="sv" class="pri">Save</button></div>`;
+  f.querySelectorAll("[data-w]").forEach(b => b.onclick = () => { w=b.dataset.w; f.querySelectorAll("[data-w]").forEach(x=>x.classList.toggle("sel",x===b)); });
+  f.querySelector("#sv").onclick = () => { if (!w){ alert("Pick the winner first."); return; } const was=e.w; Object.assign(e,{w, ka:+$("#tka").value||0, kb:+$("#tkb").value||0});
+    if (was!==w) logTb("Tiebreaker game: "+T(w).name+" beat "+T(w===e.a?e.b:e.a).name+" (Group "+e.g+")"); $("#dlg").close(); save(); };
+  f.querySelector("#del").onclick = () => { S.tbm=S.tbm.filter(x=>x.id!==id); logTb("Tiebreaker game deleted: "+T(e.a).name+" vs "+T(e.b).name); $("#dlg").close(); save(); };
+  $("#dlg").showModal();
 }
 function randomResult(m){
   const ka = 8+Math.floor(Math.random()*20), kb = 8+Math.floor(Math.random()*20);
