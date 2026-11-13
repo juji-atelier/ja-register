@@ -345,7 +345,7 @@ function rGroups(){
   for (const g of GROUPS){
     const st = standings(g);
     h += `<div class="card"><h3><span class="g" style="background:${GCOL[g]}">${g}</span>GROUP ${g}${groupDone(g)?' <span class="sub" style="margin-left:auto">complete</span>':''}</h3>
-      <table><tr><th>#</th><th class="l">TEAM</th><th>P</th><th>W</th><th>L</th><th>K</th><th>D</th><th title="Points: 1 per win">PTS</th><th title="Head-to-head: wins against the other teams on the same points">H2H</th><th title="Kill difference: kills minus deaths">KD</th></tr>`;
+      <table><tr><th>#</th><th class="l">TEAM</th><th>P</th><th>W</th><th>L</th><th>K</th><th>D</th><th title="Points: 1 per win">PTS</th><th title="Tie break (as on Challonge): wins against the other teams on the same points">TB</th><th title="Kill difference: kills minus deaths (Challonge: Pts Diff)">KD</th></tr>`;
     st.forEach((r,i)=>{ h += `<tr class="${i<2?'q':''}"><td class="rk">${i+1}</td><td class="l"><span class="tn">${name(r.id)}</span>${(()=>{ const imp = r.unresolved && i<=2 && st.some((x,j)=>j!==i && j<=2 && x.unresolved && x.pts===r.pts);
    return (r.note?`<div class="tbn${imp?' bad':''}">${imp?'⚠ ':'↳ '}${esc(imp||!r.unresolved?r.note:r.note+' (no effect on qualifying)')}</div>`:'') + (imp?(tbPending(r.id)?`<div class="tbn" style="color:var(--mist)">⏳ tiebreaker game scheduled (see TIEBREAKER below)</div>`:`<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="sm coin" data-tbg="${g}|${r.id}">Tiebreaker game</button><button class="sm coin" data-coin="${g}|${r.id}">Coin toss ⬆</button></div>`):''); })()}</td><td>${r.p}</td><td>${r.w}</td><td>${r.l}</td><td class="${r.by==='kills'?'tbc hit':''}">${r.k}</td><td class="${r.by==='deaths'?'tbc hit':''}">${r.d}</td><td class="pts">${r.pts}</td><td class="tbc${r.by==='h2h'?' hit':''}">${r.tied?r.h2h:'–'}</td><td class="tbc${r.by==='kd'?' hit':''}">${r.kd>0?'+':''}${r.kd}</td></tr>`; });
     h += `</table><div class="matches">`;
@@ -581,7 +581,7 @@ function rApprove(){
 }
 
 function legendHTML(){
-  return `<h5>COLUMNS</h5><dl><dt>#</dt><dd>Rank in the group</dd><dt>P</dt><dd>Games played</dd><dt>W</dt><dd>Wins</dd><dt>L</dt><dd>Losses</dd><dt>K</dt><dd>Total kills</dd><dt>D</dt><dd>Total deaths</dd><dt>PTS</dt><dd>Points: 1 per win. Ranking starts here</dd><dt>H2H</dt><dd>Head-to-head: wins against the other teams on the <b>same points</b>. “–” = not tied</dd><dt>KD</dt><dd>Kill difference: kills minus deaths</dd></dl>
+  return `<h5>COLUMNS</h5><dl><dt>#</dt><dd>Rank in the group</dd><dt>P</dt><dd>Games played</dd><dt>W</dt><dd>Wins</dd><dt>L</dt><dd>Losses</dd><dt>K</dt><dd>Total kills</dd><dt>D</dt><dd>Total deaths</dd><dt>PTS</dt><dd>Points: 1 per win. Ranking starts here</dd><dt>TB</dt><dd>Tie break, same as Challonge’s <b>TB</b>: wins against the other teams on the <b>same points</b> (head-to-head). “–” = not tied</dd><dt>KD</dt><dd>Kill difference: kills minus deaths. Challonge calls this <b>Pts Diff</b></dd></dl>
   <h5>COLOURS &amp; MARKS</h5><ul>
     <li><span class="sw" style="background:rgba(242,182,50,.25)"></span><span><b style="color:var(--ink)">Gold row</b>: qualifies. 1st → upper bracket, 2nd → lower bracket</span></li>
     <li><span class="sw" style="background:rgba(242,182,50,.35);outline:1px solid var(--crown)"></span><span><b style="color:var(--ink)">Gold number</b>: the tie-break that decided the order</span></li>
