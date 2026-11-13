@@ -6,6 +6,7 @@
 <title>JA ESPORT Tournament — Demo</title>
 <meta name="theme-color" content="#0a1222">
 <meta name="robots" content="noindex">
+<link rel="icon" href="ja.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -41,7 +42,9 @@
   input[type=number]{width:72px}
 
   .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-  .mark{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--rift),var(--tide));color:#fff;font:700 15px var(--hd);flex:none}
+  .mark{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--rift),var(--tide));color:#fff;flex:none}
+  .mark .logo{width:32px;height:auto;display:block}
+  .foot .logo{width:22px;height:auto;display:block;margin:0 auto 6px;color:#55648a}
   .ttl{font:700 22px/1.1 var(--hd);letter-spacing:.02em}
   .sub{color:var(--mist);font-size:13px}
   .demo{margin-left:auto;font:700 11px var(--hd);letter-spacing:.1em;color:#1a1200;background:var(--crown);padding:5px 9px;border-radius:6px}
@@ -141,7 +144,7 @@
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="mark">JA</div>
+    <div class="mark"><svg class="logo" viewBox="0 0 140 79" role="img" aria-label="JUJI-ATELIER"><path fill="currentColor" fill-rule="evenodd" d="M54.75 30.67 L54.15 30.62 L53.93 29.88 L54.99 22.0 L55.83 20.0 L56.03 17.62 L56.83 15.75 L57.07 13.75 L57.81 11.88 L58.51 7.62 L58.4 4.75 L57.25 0.0 L72.52 0.0 L69.81 5.5 L69.07 6.38 L62.81 17.5 L60.25 21.38 L59.86 22.5 L55.84 29.5ZM136.62 78.13 L120.88 78.1 L120.12 77.86 L118.25 75.38 L110.79 62.25 L109.5 61.03 L70.75 61.08 L70.22 60.88 L70.14 60.12 L73.7 54.5 L77.12 48.12 L78.12 47.12 L98.38 47.01 L101.0 46.91 L101.5 46.55 L98.74 41.38 L93.12 32.44 L85.75 19.51 L85.38 19.28 L84.11 20.25 L81.8 24.5 L72.13 40.38 L71.7 41.5 L66.1 50.38 L65.72 51.5 L60.23 60.38 L56.88 66.48 L52.62 71.66 L48.62 74.72 L44.38 76.79 L39.25 77.9 L1.75 78.04 L1.0 77.78 L0.79 77.25 L6.13 68.5 L7.68 66.5 L8.15 65.38 L10.25 63.06 L34.0 62.9 L36.0 62.04 L37.62 61.8 L39.62 60.64 L42.88 57.47 L59.1 29.38 L62.82 23.5 L66.12 17.38 L71.74 8.5 L76.32 0.0 L93.0 -0.05 L93.85 0.0 L96.73 4.38 L100.06 10.5 L102.74 14.38 L106.07 20.5 L106.85 21.38 L109.03 25.5 L109.8 26.38 L116.15 37.5 L118.68 41.38 L119.07 42.5 L119.86 43.38 L122.04 47.5 L122.79 48.38 L123.19 49.5 L129.76 60.38 L138.34 75.5 L139.12 76.68 L139.88 77.07 L139.88 77.97Z"/></svg></div>
     <div>
       <div class="ttl" id="evName">SUKSES V MLBB</div>
       <div class="sub">20 teams · 4 groups of 5 · double elimination · powered by JA ESPORT</div>
@@ -164,7 +167,7 @@
   <section id="tab-approve" hidden></section>
   <section id="tab-teams" hidden></section>
 
-  <div class="foot">© JUJI-ATELIER SYSTEM · JA ESPORT Tournament (demo)</div>
+  <div class="foot"><svg class="logo" viewBox="0 0 140 79" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M54.75 30.67 L54.15 30.62 L53.93 29.88 L54.99 22.0 L55.83 20.0 L56.03 17.62 L56.83 15.75 L57.07 13.75 L57.81 11.88 L58.51 7.62 L58.4 4.75 L57.25 0.0 L72.52 0.0 L69.81 5.5 L69.07 6.38 L62.81 17.5 L60.25 21.38 L59.86 22.5 L55.84 29.5ZM136.62 78.13 L120.88 78.1 L120.12 77.86 L118.25 75.38 L110.79 62.25 L109.5 61.03 L70.75 61.08 L70.22 60.88 L70.14 60.12 L73.7 54.5 L77.12 48.12 L78.12 47.12 L98.38 47.01 L101.0 46.91 L101.5 46.55 L98.74 41.38 L93.12 32.44 L85.75 19.51 L85.38 19.28 L84.11 20.25 L81.8 24.5 L72.13 40.38 L71.7 41.5 L66.1 50.38 L65.72 51.5 L60.23 60.38 L56.88 66.48 L52.62 71.66 L48.62 74.72 L44.38 76.79 L39.25 77.9 L1.75 78.04 L1.0 77.78 L0.79 77.25 L6.13 68.5 L7.68 66.5 L8.15 65.38 L10.25 63.06 L34.0 62.9 L36.0 62.04 L37.62 61.8 L39.62 60.64 L42.88 57.47 L59.1 29.38 L62.82 23.5 L66.12 17.38 L71.74 8.5 L76.32 0.0 L93.0 -0.05 L93.85 0.0 L96.73 4.38 L100.06 10.5 L102.74 14.38 L106.07 20.5 L106.85 21.38 L109.03 25.5 L109.8 26.38 L116.15 37.5 L118.68 41.38 L119.07 42.5 L119.86 43.38 L122.04 47.5 L122.79 48.38 L123.19 49.5 L129.76 60.38 L138.34 75.5 L139.12 76.68 L139.88 77.07 L139.88 77.97Z"/></svg>© JUJI-ATELIER SYSTEM · JA ESPORT Tournament (demo)</div>
 </div>
 
 <dialog id="dlg"><form method="dialog" id="dlgForm"></form></dialog>
