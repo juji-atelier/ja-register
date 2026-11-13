@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>JA ESPORT Tournament — Demo</title>
+<meta name="theme-color" content="#0a1222">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!--
+  JA ESPORT Tournament (DEMO). Challonge-style tournament manager for SUKSES V MLBB:
+  20 teams, 4 groups of 5 (round robin, BO1, 1 pt per win), top 2 to an 8-team double-elimination bracket
+  (group winners -> upper bracket, runners-up -> lower bracket, BO3, Grand Final BO5).
+  Tie-break: points -> head-to-head -> total kills -> fewest deaths.
+  DEMO: everything is saved in this browser only (localStorage). The real version syncs through Firebase.
+  Link options: ?event=SUKSES%20V%20MLBB
+  (c) JUJI-ATELIER SYSTEM
+-->
+<style>
+  :root{
+    --abyss:#0a1222; --deck:#121d33; --deck2:#0e1729; --line:#22304f;
+    --ink:#eef2fb; --mist:#9aa7c4; --rift:#d23a55; --tide:#3a86d9; --crown:#f2b632; --ok:#48bb6e; --warn:#f2b544;
+    --hd:"Chakra Petch",system-ui,sans-serif; --bd:"Barlow",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--abyss);color:var(--ink);font:400 15px/1.45 var(--bd);
+    background-image:radial-gradient(900px 420px at 0% -10%,rgba(210,58,85,.18),transparent 60%),radial-gradient(900px 420px at 100% -10%,rgba(58,134,217,.18),transparent 60%);
+    background-repeat:no-repeat;min-height:100vh}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 16px calc(40px + env(safe-area-inset-bottom))}
+  :focus-visible{outline:2px solid var(--crown);outline-offset:2px}
+  button{font:600 14px var(--bd);color:var(--ink);background:var(--deck);border:1px solid var(--line);border-radius:10px;padding:9px 14px;cursor:pointer;min-height:40px}
+  button:hover{border-color:#3a4d78}
+  button.pri{background:var(--rift);border-color:var(--rift);color:#fff}
+  button.ok{background:var(--ok);border-color:var(--ok);color:#06210f}
+  button.ghost{background:transparent}
+  button.sm{min-height:32px;padding:5px 10px;font-size:13px}
+  input[type=number],select{background:var(--deck2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 10px;font:500 15px var(--bd)}
+  input[type=number]{width:72px}
+
+  .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .mark{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--rift),var(--tide));color:#fff;font:700 15px var(--hd);flex:none}
+  .ttl{font:700 22px/1.1 var(--hd);letter-spacing:.02em}
+  .sub{color:var(--mist);font-size:13px}
+  .demo{margin-left:auto;font:700 11px var(--hd);letter-spacing:.1em;color:#1a1200;background:var(--crown);padding:5px 9px;border-radius:6px}
+  .note{margin:12px 0 0;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--deck2);color:var(--mist);font-size:13.5px}
+  .note b{color:var(--ink)}
+
+  nav{display:flex;gap:6px;margin:16px 0 14px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+  nav button{border:none;border-bottom:3px solid transparent;border-radius:0;background:none;padding:10px 14px;color:var(--mist);font:600 15px var(--hd)}
+  nav button.on{color:var(--ink);border-bottom-color:var(--rift)}
+  nav .badge{display:inline-block;min-width:20px;padding:1px 6px;margin-left:6px;border-radius:10px;background:var(--crown);color:#1a1200;font-size:12px}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .bar .sp{flex:1}
+  .stage{font:600 13px var(--hd);color:var(--mist);letter-spacing:.06em;text-transform:uppercase}
+
+  /* groups */
+  .groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+  .card{background:var(--deck);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .card h3{margin:0;padding:10px 14px;font:700 15px var(--hd);letter-spacing:.06em;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
+  .card h3 .g{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:#fff;font-size:14px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font:600 11.5px var(--hd);color:var(--mist);letter-spacing:.08em;text-align:center;padding:7px 4px;border-bottom:1px solid var(--line)}
+  th.l,td.l{text-align:left}
+  td{padding:7px 4px;text-align:center;border-bottom:1px solid #1a2744}
+  tr.q td{background:rgba(242,182,50,.08)}
+  tr.q td.rk{color:var(--crown);font-weight:700}
+  td.rk{width:30px;color:var(--mist);font-weight:600}
+  td.pts{font-weight:700}
+  .tn{font-weight:600}
+  .zone{color:var(--mist);font-size:12px;margin-left:6px}
+  .matches{padding:8px 10px 12px}
+  .rnd{font:600 11.5px var(--hd);color:var(--mist);letter-spacing:.1em;margin:10px 4px 4px}
+  .m{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:7px 8px;border-radius:9px;background:var(--deck2);margin:4px 0;font-size:14px;cursor:pointer;border:1px solid transparent}
+  .m:hover{border-color:var(--line)}
+  .m .a{text-align:right}.m .b{text-align:left}
+  .m .s{font:700 13px var(--hd);color:var(--mist);min-width:62px;text-align:center}
+  .m .w{color:var(--ok);font-weight:700}
+  .m .l{color:#7d89a6}
+  .m.rep{border-color:var(--warn)}
+  .m .tag{font:700 10px var(--hd);letter-spacing:.06em;padding:2px 6px;border-radius:5px;background:var(--warn);color:#1a1200}
+  .bye{color:var(--mist);font-size:12.5px;margin:2px 6px}
+
+  /* bracket */
+  .bwrap{overflow-x:auto;padding-bottom:6px}
+  .lane{margin-bottom:22px}
+  .lane h4{margin:0 0 8px;font:700 13px var(--hd);letter-spacing:.12em;color:var(--mist)}
+  .cols{display:flex;gap:28px;align-items:stretch;min-width:max-content}
+  .col{display:flex;flex-direction:column;justify-content:space-around;gap:16px;min-width:230px}
+  .col .ch{font:600 11px var(--hd);color:var(--mist);letter-spacing:.1em;text-align:center;margin-bottom:-6px}
+  .ser{background:var(--deck);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;position:relative}
+  .ser:hover{border-color:#3a4d78}
+  .ser .id{position:absolute;top:-1px;right:-1px;font:700 10px var(--hd);padding:2px 6px;background:var(--line);color:var(--mist);border-radius:0 9px 0 6px}
+  .ser .t{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #1a2744;font-size:14px}
+  .ser .t:last-child{border-bottom:none}
+  .ser .t .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ser .t .sc{font:700 15px var(--hd);width:22px;text-align:center;color:var(--mist)}
+  .ser .t.win{background:rgba(72,187,110,.12)}
+  .ser .t.win .nm{font-weight:700}.ser .t.win .sc{color:var(--ok)}
+  .ser .t.los .nm{color:#7d89a6}
+  .ser .t .seed{font:600 11px var(--hd);color:var(--mist);width:22px}
+  .ser .t.tbd .nm{color:#55648a;font-style:italic}
+  .ser .bo{font:600 10.5px var(--hd);color:var(--mist);padding:3px 10px;background:var(--deck2);letter-spacing:.06em}
+  .champ{border:2px solid var(--crown);background:rgba(242,182,50,.1);border-radius:14px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px}
+  .champ .c1{font:700 12px var(--hd);letter-spacing:.14em;color:var(--crown)}
+  .champ .c2{font:700 24px var(--hd)}
+
+  /* captain */
+  .capbox{max-width:560px}
+  .capbox select{width:100%;margin:6px 0 14px}
+  .next{background:var(--deck);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .next .vs{font:700 20px var(--hd);margin:4px 0 10px}
+  .pick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+  .pick button{min-height:52px;font:700 15px var(--hd)}
+  .pick button.sel{background:var(--ok);border-color:var(--ok);color:#06210f}
+  .kgrid{display:grid;grid-template-columns:1fr auto auto;gap:8px 10px;align-items:center;margin:10px 0}
+  .kgrid .h{font:600 11.5px var(--hd);color:var(--mist);letter-spacing:.08em}
+  .status{margin-top:10px;padding:10px 12px;border-radius:10px;font-weight:600}
+  .status.wait{background:rgba(242,181,68,.14);border:1px solid var(--warn);color:#ffe7b0}
+  .status.done{background:rgba(72,187,110,.14);border:1px solid var(--ok);color:#c9f3d8}
+
+  /* approvals */
+  .aq{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--warn);border-radius:12px;background:rgba(242,181,68,.08);margin-bottom:8px}
+  .aq .d{flex:1;min-width:220px}
+  .aq .d small{display:block;color:var(--mist)}
+  .empty{color:var(--mist);padding:18px;text-align:center;border:1px dashed var(--line);border-radius:12px}
+
+  /* modal */
+  dialog{background:var(--deck);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:18px;width:min(440px,92vw)}
+  dialog::backdrop{background:rgba(3,7,16,.7)}
+  dialog h4{margin:0 0 4px;font:700 18px var(--hd)}
+  dialog .ft{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+  .teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+  .teams div{background:var(--deck);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .foot{margin-top:28px;color:#55648a;font-size:12px;text-align:center}
+  @media (max-width:560px){.ttl{font-size:19px}.groups{grid-template-columns:1fr}.demo{margin-left:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="mark">JA</div>
+    <div>
+      <div class="ttl" id="evName">SUKSES V MLBB</div>
+      <div class="sub">20 teams · 4 groups of 5 · double elimination · powered by JA ESPORT</div>
+    </div>
+    <div class="demo">DEMO</div>
+  </div>
+  <p class="note"><b>Demo version.</b> Everything here is saved in this browser only, so you can click around freely. In the real version, results sync online and show on every phone, the hall TV and the live score page at once.</p>
+
+  <nav id="nav">
+    <button data-tab="groups" class="on">Groups</button>
+    <button data-tab="bracket">Bracket</button>
+    <button data-tab="captain">Captain view</button>
+    <button data-tab="approve">Approvals <span class="badge" id="qCount">0</span></button>
+    <button data-tab="teams">Teams</button>
+  </nav>
+
+  <section id="tab-groups"></section>
+  <section id="tab-bracket" hidden></section>
+  <section id="tab-captain" hidden></section>
+  <section id="tab-approve" hidden></section>
+  <section id="tab-teams" hidden></section>
+
+  <div class="foot">© JUJI-ATELIER SYSTEM · JA ESPORT Tournament (demo)</div>
+</div>
+
+<dialog id="dlg"><form method="dialog" id="dlgForm"></form></dialog>
+
+<script>
+(function(){
+"use strict";
+const KEY = "ja-tourney-demo-v1";
+const GROUPS = ["A","B","C","D"];
+const GCOL = {A:"#d23a55",B:"#3a86d9",C:"#2f9e62",D:"#8a5cd6"};
+const qs = new URLSearchParams(location.search);
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- double elimination (8 teams: 4 group winners in upper, 4 runners-up in lower) ---------- */
+const SERIES = [
+  {id:"UB1", lane:"U", col:0, bo:3, a:{seed:"A1"}, b:{seed:"B1"}, name:"Upper semi 1"},
+  {id:"UB2", lane:"U", col:0, bo:3, a:{seed:"C1"}, b:{seed:"D1"}, name:"Upper semi 2"},
+  {id:"UBF", lane:"U", col:1, bo:3, a:{w:"UB1"}, b:{w:"UB2"}, name:"Upper final"},
+  {id:"GF",  lane:"U", col:2, bo:5, a:{w:"UBF"}, b:{w:"LBF"}, name:"Grand Final"},
+  {id:"LB1", lane:"L", col:0, bo:3, a:{seed:"A2"}, b:{seed:"C2"}, name:"Lower round 1"},
+  {id:"LB2", lane:"L", col:0, bo:3, a:{seed:"B2"}, b:{seed:"D2"}, name:"Lower round 1"},
+  {id:"LB3", lane:"L", col:1, bo:3, a:{w:"LB1"}, b:{l:"UB2"}, name:"Lower round 2"},
+  {id:"LB4", lane:"L", col:1, bo:3, a:{w:"LB2"}, b:{l:"UB1"}, name:"Lower round 2"},
+  {id:"LB5", lane:"L", col:2, bo:3, a:{w:"LB3"}, b:{w:"LB4"}, name:"Lower semi"},
+  {id:"LBF", lane:"L", col:3, bo:3, a:{w:"LB5"}, b:{l:"UBF"}, name:"Lower final"}
+];
+const SBY = Object.fromEntries(SERIES.map(s => [s.id, s]));
+const COLNAMES = {U:["Upper semi-finals","Upper final","Grand Final (BO5)"], L:["Lower round 1","Lower round 2","Lower semi","Lower final"]};
+
+/* ---------- state ---------- */
+let S = load() || fresh();
+function fresh(){
+  const teams = [];
+  for (let z = 1; z <= 10; z++) for (const x of ["A","B"]) teams.push({id:"T"+z+x, name:"Zone "+z+" "+x, zone:z, group:null});
+  const st = {event: qs.get("event") || "SUKSES V MLBB", teams, gm:[], br:{}, reports:[]};
+  draw(st); return st;
+}
+function load(){ try { return JSON.parse(localStorage.getItem(KEY)); } catch(e){ return null; } }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} render(); }
+const T = id => S.teams.find(t => t.id === id);
+
+/* group draw: zone's two teams always in different groups */
+function draw(st){
+  const zones = [...Array(10)].map((_,i)=>i+1).sort(()=>Math.random()-.5);
+  const count = {A:0,B:0,C:0,D:0};
+  zones.forEach((z,i) => {
+    const pairs = [[GROUPS[(i*2)%4],GROUPS[(i*2+1)%4]]];
+    let [g1,g2] = pairs[0];
+    if (count[g1] >= 5 || count[g2] >= 5) { const free = GROUPS.filter(g=>count[g]<5).sort((a,b)=>count[a]-count[b]); g1=free[0]; g2=free[1]||free[0]; }
+    const ts = st.teams.filter(t=>t.zone===z).sort(()=>Math.random()-.5);
+    ts[0].group=g1; count[g1]++; ts[1].group=g2; count[g2]++;
+  });
+  st.gm = [];
+  for (const g of GROUPS){
+    const ids = st.teams.filter(t=>t.group===g).map(t=>t.id);
+    roundRobin(ids).forEach((round, r) => round.forEach(([a,b]) => {
+      if (a && b) st.gm.push({id:g+"-"+(r+1)+"-"+a+"-"+b, g, r:r+1, a, b, w:null, ka:0, kb:0, da:0, db:0});
+    }));
+  }
+  st.br = {}; st.reports = [];
+}
+function roundRobin(ids){
+  const t = ids.slice(); if (t.length % 2) t.push(null);
+  const n = t.length, rounds = [];
+  for (let r = 0; r < n-1; r++){
+    const pairs = [];
+    for (let i = 0; i < n/2; i++) pairs.push(r % 2 ? [t[n-1-i], t[i]] : [t[i], t[n-1-i]]);
+    rounds.push(pairs);
+    t.splice(1, 0, t.pop());
+  }
+  return rounds;
+}
+
+/* ---------- standings with SUKSES V tie-break ---------- */
+function standings(g){
+  const rows = S.teams.filter(t=>t.group===g).map(t=>({id:t.id, p:0, w:0, l:0, pts:0, k:0, d:0}));
+  const R = Object.fromEntries(rows.map(r=>[r.id,r]));
+  for (const m of S.gm) if (m.g===g && m.w){
+    const A=R[m.a], B=R[m.b]; A.p++; B.p++;
+    A.k+=m.ka; B.k+=m.kb; A.d+=m.da; B.d+=m.db;
+    if (m.w==="a"){A.w++;A.pts++;B.l++;} else {B.w++;B.pts++;A.l++;}
+  }
+  rows.sort((x,y)=>y.pts-x.pts);
+  const out = [];
+  for (let i=0;i<rows.length;){
+    let j=i; while (j<rows.length && rows[j].pts===rows[i].pts) j++;
+    const tied = rows.slice(i,j);
+    if (tied.length>1){
+      const ids = new Set(tied.map(r=>r.id)), h2h = Object.fromEntries(tied.map(r=>[r.id,0]));
+      for (const m of S.gm) if (m.g===g && m.w && ids.has(m.a) && ids.has(m.b)) h2h[m.w==="a"?m.a:m.b]++;
+      tied.sort((x,y)=> (h2h[y.id]-h2h[x.id]) || (y.k-x.k) || (x.d-y.d) || x.id.localeCompare(y.id));
+    }
+    out.push(...tied); i=j;
+  }
+  return out;
+}
+const groupDone = g => S.gm.filter(m=>m.g===g).every(m=>m.w);
+const allGroupsDone = () => GROUPS.every(groupDone);
+
+/* ---------- bracket resolve ---------- */
+function seedTeam(code){ const g=code[0], pos=+code[1]; if (!groupDone(g)) return null; return standings(g)[pos-1].id; }
+function serWinner(id){ const s=S.br[id]; if(!s) return null; const need=Math.ceil(SBY[id].bo/2); const [a,b]=sides(id);
+  if (s.sa>=need) return a; if (s.sb>=need) return b; return null; }
+function serLoser(id){ const w=serWinner(id); if(!w) return null; const [a,b]=sides(id); return w===a?b:a; }
+function res(ref){ if (ref.seed) return seedTeam(ref.seed); if (ref.w) return serWinner(ref.w); if (ref.l) return serLoser(ref.l); return null; }
+function sides(id){ const s=SBY[id]; return [res(s.a), res(s.b)]; }
+function refLabel(ref){ if (ref.seed) return "Group "+ref.seed[0]+" #"+ref.seed[1]; if (ref.w) return "Winner "+ref.w; return "Loser "+ref.l; }
+
+/* ---------- render ---------- */
+let tab = "groups", capTeam = "";
+$("#nav").addEventListener("click", e => { const b=e.target.closest("button[data-tab]"); if(!b) return; tab=b.dataset.tab; render(); });
+function render(){
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on", b.dataset.tab===tab));
+  ["groups","bracket","captain","approve","teams"].forEach(t => $("#tab-"+t).hidden = t!==tab);
+  $("#evName").textContent = S.event;
+  $("#qCount").textContent = S.reports.length;
+  ({groups:rGroups, bracket:rBracket, captain:rCaptain, approve:rApprove, teams:rTeams})[tab]();
+}
+const name = id => id ? esc(T(id).name) : "TBD";
+
+function rGroups(){
+  const done = S.gm.filter(m=>m.w).length;
+  let h = `<div class="bar"><span class="stage">Group stage · ${done} / ${S.gm.length} games played</span><span class="sp"></span>
+    <button class="sm" id="simG">Simulate all group results</button><button class="sm ghost" id="redraw">New group draw</button><button class="sm ghost" id="reset">Reset demo</button></div>
+    <p class="sub" style="margin:-6px 0 12px">Tap any game to enter or change its result. Top 2 of each group qualify (gold). Winners go to the upper bracket, runners-up to the lower bracket.</p>
+    <div class="groups">`;
+  for (const g of GROUPS){
+    const st = standings(g);
+    h += `<div class="card"><h3><span class="g" style="background:${GCOL[g]}">${g}</span>GROUP ${g}${groupDone(g)?' <span class="sub" style="margin-left:auto">complete</span>':''}</h3>
+      <table><tr><th>#</th><th class="l">TEAM</th><th>P</th><th>W</th><th>L</th><th>K</th><th>D</th><th>PTS</th></tr>`;
+    st.forEach((r,i)=>{ h += `<tr class="${i<2?'q':''}"><td class="rk">${i+1}</td><td class="l"><span class="tn">${name(r.id)}</span></td><td>${r.p}</td><td>${r.w}</td><td>${r.l}</td><td>${r.k}</td><td>${r.d}</td><td class="pts">${r.pts}</td></tr>`; });
+    h += `</table><div class="matches">`;
+    for (let r=1;r<=5;r++){
+      h += `<div class="rnd">ROUND ${r}</div>`;
+      const ids = new Set();
+      S.gm.filter(m=>m.g===g && m.r===r).forEach(m=>{
+        ids.add(m.a); ids.add(m.b);
+        const rep = S.reports.find(x=>x.kind==="g" && x.mid===m.id);
+        h += `<div class="m${rep?' rep':''}" data-gm="${m.id}"><span class="a ${m.w==='a'?'w':m.w?'l':''}">${name(m.a)}</span>
+          <span class="s">${m.w? m.ka+' – '+m.kb : rep? '<span class="tag">REPORTED</span>' : 'vs'}</span>
+          <span class="b ${m.w==='b'?'w':m.w?'l':''}">${name(m.b)}</span></div>`;
+      });
+      const bye = S.teams.filter(t=>t.group===g && !ids.has(t.id));
+      if (bye.length) h += `<div class="bye">Bye: ${bye.map(t=>esc(t.name)).join(", ")}</div>`;
+    }
+    h += `</div></div>`;
+  }
+  $("#tab-groups").innerHTML = h + `</div>`;
+  $("#simG").onclick = () => { S.gm.forEach(m=>{ if(!m.w) randomResult(m); }); S.reports = S.reports.filter(x=>x.kind!=="g"); save(); };
+  $("#redraw").onclick = () => { if (confirm("Make a new group draw? All results will be cleared.")) { draw(S); save(); } };
+  $("#reset").onclick = () => { if (confirm("Reset the whole demo?")) { S = fresh(); save(); } };
+  document.querySelectorAll("[data-gm]").forEach(el => el.onclick = () => openGame(el.dataset.gm));
+}
+function randomResult(m){
+  const ka = 8+Math.floor(Math.random()*20), kb = 8+Math.floor(Math.random()*20);
+  m.ka=ka; m.kb=kb===ka?kb+1:kb; m.w = m.ka>m.kb ? "a" : "b"; m.da=m.kb; m.db=m.ka;
+}
+
+function openGame(id, fromReport){
+  const m = S.gm.find(x=>x.id===id);
+  const rep = fromReport || S.reports.find(x=>x.kind==="g" && x.mid===id);
+  const v = rep ? rep : {w:m.w, ka:m.ka, kb:m.kb};
+  const f = $("#dlgForm");
+  f.innerHTML = `<h4>Group ${m.g} · Round ${m.r}</h4><p class="sub">${rep?'Reported by the captain of '+esc(T(rep.by).name)+'. Check it, then approve.':'Enter the result (BO1).'}</p>
+    <div class="pick"><button type="button" data-w="a" class="${v.w==='a'?'sel':''}">${name(m.a)}</button><button type="button" data-w="b" class="${v.w==='b'?'sel':''}">${name(m.b)}</button></div>
+    <div class="kgrid"><span class="h">TEAM</span><span class="h">KILLS</span><span class="h">DEATHS</span>
+      <span>${name(m.a)}</span><input type="number" min="0" id="ka" value="${v.ka||0}"><input type="number" min="0" id="da" value="${m.da||v.kb||0}">
+      <span>${name(m.b)}</span><input type="number" min="0" id="kb" value="${v.kb||0}"><input type="number" min="0" id="db" value="${m.db||v.ka||0}"></div>
+    <div class="ft">${m.w?'<button type="button" id="clr" class="ghost">Clear result</button>':''}<button value="cancel" class="ghost">Cancel</button><button type="button" id="sv" class="${rep?'ok':'pri'}">${rep?'Approve':'Save'}</button></div>`;
+  let w = v.w;
+  f.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>{ w=b.dataset.w; f.querySelectorAll("[data-w]").forEach(x=>x.classList.toggle("sel",x===b)); });
+  f.querySelector("#sv").onclick = () => {
+    if (!w) { alert("Pick the winner first."); return; }
+    Object.assign(m, {w, ka:+$("#ka").value||0, kb:+$("#kb").value||0, da:+$("#da").value||0, db:+$("#db").value||0});
+    S.reports = S.reports.filter(x=>!(x.kind==="g" && x.mid===id));
+    $("#dlg").close(); save();
+  };
+  const clr = f.querySelector("#clr"); if (clr) clr.onclick = () => { Object.assign(m,{w:null,ka:0,kb:0,da:0,db:0}); $("#dlg").close(); save(); };
+  $("#dlg").showModal();
+}
+
+function serCard(id){
+  const s = SBY[id], [a,b] = sides(id), r = S.br[id] || {sa:0,sb:0}, w = serWinner(id);
+  const rep = S.reports.find(x=>x.kind==="s" && x.mid===id);
+  const row = (t, ref, sc) => `<div class="t ${!t?'tbd':''} ${w&&t===w?'win':''} ${w&&t&&t!==w?'los':''}">
+      ${ref.seed?`<span class="seed">${ref.seed}</span>`:''}<span class="nm">${t?esc(T(t).name):refLabel(ref)}</span><span class="sc">${a&&b?sc:''}</span></div>`;
+  return `<div class="ser" data-ser="${id}">${row(a,s.a,r.sa)}${row(b,s.b,r.sb)}
+    <div class="bo">${id} · BO${s.bo} · ${s.name}${rep?' · <span class="tag" style="background:var(--warn);color:#1a1200;padding:1px 5px;border-radius:4px">REPORTED</span>':''}</div></div>`;
+}
+function rBracket(){
+  const gf = serWinner("GF");
+  let h = `<div class="bar"><span class="stage">Playoffs · double elimination · 8 teams</span><span class="sp"></span>
+    <button class="sm" id="simB">Simulate next series</button><button class="sm ghost" id="clrB">Clear bracket results</button></div>`;
+  if (!allGroupsDone()) h += `<p class="note" style="margin:0 0 14px">Teams appear here automatically when each group is complete. Tip: on the Groups tab, press <b>Simulate all group results</b> to fill the bracket.</p>`;
+  if (gf) h += `<div class="champ"><div><div class="c1">CHAMPION</div><div class="c2">${esc(T(gf).name)}</div></div><div class="sub" style="margin-left:auto">Runner-up: ${esc(T(serLoser("GF")).name)} · 3rd: ${esc(T(serLoser("LBF")).name)}</div></div>`;
+  h += `<div class="bwrap">`;
+  for (const lane of ["U","L"]){
+    h += `<div class="lane"><h4>${lane==="U"?"UPPER BRACKET":"LOWER BRACKET"}</h4><div class="cols">`;
+    COLNAMES[lane].forEach((cn,ci)=>{
+      h += `<div class="col"><div class="ch">${cn.toUpperCase()}</div>${SERIES.filter(s=>s.lane===lane && s.col===ci).map(s=>serCard(s.id)).join("")}</div>`;
+    });
+    h += `</div></div>`;
+  }
+  $("#tab-bracket").innerHTML = h + `</div><p class="sub">Winners move right automatically. Losing in the upper bracket drops a team to the lower bracket; losing in the lower bracket knocks it out. Tap a series to enter its score.</p>`;
+  document.querySelectorAll("[data-ser]").forEach(el => el.onclick = () => openSeries(el.dataset.ser));
+  $("#simB").onclick = () => {
+    const nxt = SERIES.find(s => { const [a,b]=sides(s.id); return a && b && !serWinner(s.id); });
+    if (!nxt) { alert(allGroupsDone() ? "No series is ready to play." : "Finish the group stage first."); return; }
+    const need = Math.ceil(nxt.bo/2), loser = Math.floor(Math.random()*need);
+    if (Math.random()<.5) setSeries(nxt.id, need, loser); else setSeries(nxt.id, loser, need);
+    S.reports = S.reports.filter(x=>!(x.kind==="s" && x.mid===nxt.id)); save();
+  };
+  $("#clrB").onclick = () => { if (confirm("Clear all bracket results?")) { S.br = {}; S.reports = S.reports.filter(x=>x.kind!=="s"); save(); } };
+}
+function openSeries(id, fromReport){
+  const s = SBY[id], [a,b] = sides(id);
+  if (!a || !b) { alert("Both teams for "+id+" aren't decided yet."); return; }
+  const rep = fromReport || S.reports.find(x=>x.kind==="s" && x.mid===id);
+  const r = rep ? rep : (S.br[id] || {sa:0,sb:0}), need = Math.ceil(s.bo/2);
+  const f = $("#dlgForm");
+  f.innerHTML = `<h4>${id} · ${s.name}</h4><p class="sub">${rep?'Reported by the captain of '+esc(T(rep.by).name)+'. Check it, then approve.':'Best of '+s.bo+': first to '+need+' game wins.'}</p>
+    <div class="kgrid" style="grid-template-columns:1fr auto"><span class="h">TEAM</span><span class="h">GAMES WON</span>
+      <span>${esc(T(a).name)}</span><input type="number" min="0" max="${need}" id="sa" value="${r.sa}">
+      <span>${esc(T(b).name)}</span><input type="number" min="0" max="${need}" id="sb" value="${r.sb}"></div>
+    <div class="ft"><button value="cancel" class="ghost">Cancel</button><button type="button" id="sv" class="${rep?'ok':'pri'}">${rep?'Approve':'Save'}</button></div>`;
+  f.querySelector("#sv").onclick = () => {
+    const sa = Math.min(need, +$("#sa").value||0), sb = Math.min(need, +$("#sb").value||0);
+    if (sa===need && sb===need) { alert("Only one team can reach "+need+"."); return; }
+    setSeries(id, sa, sb);
+    S.reports = S.reports.filter(x=>!(x.kind==="s" && x.mid===id));
+    $("#dlg").close(); save();
+  };
+  $("#dlg").showModal();
+}
+function clearDownstream(id){
+  // a changed result clears every later series that depended on it
+  for (const x of SERIES) if ([x.a, x.b].some(r => r.w===id || r.l===id) && S.br[x.id]) { delete S.br[x.id]; clearDownstream(x.id); }
+}
+function setSeries(id, sa, sb){
+  const before = serWinner(id);
+  S.br[id] = {sa, sb};
+  if (serWinner(id) !== before) clearDownstream(id);
+}
+
+/* ---------- captain view ---------- */
+function nextFor(tid){
+  const g = S.gm.find(m => (m.a===tid || m.b===tid) && !m.w);
+  if (g) return {kind:"g", m:g};
+  for (const s of SERIES){ const [a,b]=sides(s.id); if ((a===tid||b===tid) && a && b && !serWinner(s.id)) return {kind:"s", s, a, b}; }
+  return null;
+}
+function rCaptain(){
+  let h = `<div class="capbox"><p class="sub">This is what a team captain sees on their phone. In the real version each captain logs in with their team PIN; here you can pick any team.</p>
+    <label class="sub" for="capSel">I am the captain of</label><select id="capSel"><option value="">Choose a team…</option>
+    ${S.teams.slice().sort((x,y)=>x.zone-y.zone||x.name.localeCompare(y.name)).map(t=>`<option value="${t.id}" ${t.id===capTeam?'selected':''}>${esc(t.name)} (Group ${t.group})</option>`).join("")}</select>`;
+  if (capTeam){
+    const n = nextFor(capTeam);
+    if (!n) h += `<div class="empty">No match waiting. ${allGroupsDone() ? 'Your tournament may be finished, or you are waiting for another result.' : 'Waiting for other results.'}</div>`;
+    else if (n.kind==="g"){
+      const m = n.m, rep = S.reports.find(x=>x.kind==="g" && x.mid===m.id), me = m.a===capTeam ? "a" : "b", host = m.r % 2 ? m.a : m.b;
+      h += `<div class="next"><div class="stage">Next match · Group ${m.g} · Round ${m.r} · BO1</div><div class="vs">${name(m.a)} vs ${name(m.b)}</div>
+        <p class="sub">Room host: <b style="color:var(--ink)">${name(host)}</b> creates the custom Draft Pick room.</p>`;
+      if (rep) h += `<div class="status wait">Result sent: ${name(rep.w==='a'?m.a:m.b)} won (${rep.ka}–${rep.kb} kills). Waiting for the organiser to approve.</div>`;
+      else h += `<div class="sub" style="margin-top:6px">After the game, report the result:</div>
+        <div class="pick"><button type="button" data-cw="a">${name(m.a)} won</button><button type="button" data-cw="b">${name(m.b)} won</button></div>
+        <div class="kgrid" style="grid-template-columns:1fr auto"><span class="h">TEAM</span><span class="h">KILLS</span>
+          <span>${name(m.a)}</span><input type="number" min="0" id="cka" value="0"><span>${name(m.b)}</span><input type="number" min="0" id="ckb" value="0"></div>
+        <button class="pri" id="capSend" style="width:100%">Send result to organiser</button>`;
+      h += `</div>`;
+    } else {
+      const s = n.s, rep = S.reports.find(x=>x.kind==="s" && x.mid===s.id), need = Math.ceil(s.bo/2);
+      h += `<div class="next"><div class="stage">Next match · ${s.id} · ${s.name} · BO${s.bo}</div><div class="vs">${name(n.a)} vs ${name(n.b)}</div>`;
+      if (rep) h += `<div class="status wait">Result sent: ${rep.sa}–${rep.sb}. Waiting for the organiser to approve.</div>`;
+      else h += `<div class="sub">After the series, report the games won (first to ${need}):</div>
+        <div class="kgrid" style="grid-template-columns:1fr auto"><span class="h">TEAM</span><span class="h">GAMES</span>
+          <span>${name(n.a)}</span><input type="number" min="0" max="${need}" id="csa" value="0"><span>${name(n.b)}</span><input type="number" min="0" max="${need}" id="csb" value="0"></div>
+        <button class="pri" id="capSend" style="width:100%">Send result to organiser</button>`;
+      h += `</div>`;
+    }
+  }
+  $("#tab-captain").innerHTML = h + `</div>`;
+  $("#capSel").onchange = e => { capTeam = e.target.value; render(); };
+  let cw = null;
+  document.querySelectorAll("[data-cw]").forEach(b => b.onclick = () => { cw=b.dataset.cw; document.querySelectorAll("[data-cw]").forEach(x=>x.classList.toggle("sel", x===b)); });
+  const send = $("#capSend");
+  if (send) send.onclick = () => {
+    const n = nextFor(capTeam);
+    if (n.kind==="g"){
+      if (!cw) { alert("Tap the team that won."); return; }
+      S.reports.push({kind:"g", mid:n.m.id, by:capTeam, w:cw, ka:+$("#cka").value||0, kb:+$("#ckb").value||0, at:Date.now()});
+    } else {
+      const need = Math.ceil(n.s.bo/2), sa = +$("#csa").value||0, sb = +$("#csb").value||0;
+      if ((sa===need) === (sb===need)) { alert("Exactly one team must reach "+need+" wins."); return; }
+      S.reports.push({kind:"s", mid:n.s.id, by:capTeam, sa, sb, at:Date.now()});
+    }
+    save();
+  };
+}
+
+/* ---------- approvals ---------- */
+function rApprove(){
+  let h = `<p class="sub">Results sent by captains wait here. Approve to update the standings, bracket, hall TV and live score page.</p>`;
+  if (!S.reports.length) h += `<div class="empty">No results waiting. Try it: open <b>Captain view</b>, pick a team and send a result.</div>`;
+  S.reports.forEach((r,i)=>{
+    let d;
+    if (r.kind==="g"){ const m=S.gm.find(x=>x.id===r.mid); d = `<b>Group ${m.g} · R${m.r}:</b> ${name(m.a)} vs ${name(m.b)}<small>Winner: ${name(r.w==='a'?m.a:m.b)} · kills ${r.ka}–${r.kb} · sent by ${name(r.by)}</small>`; }
+    else { const [a,b]=sides(r.mid); d = `<b>${r.mid}:</b> ${name(a)} ${r.sa} – ${r.sb} ${name(b)}<small>Sent by ${name(r.by)}</small>`; }
+    h += `<div class="aq"><div class="d">${d}</div><button class="sm ok" data-ap="${i}">Approve</button><button class="sm" data-ed="${i}">Check / edit</button><button class="sm ghost" data-rj="${i}">Reject</button></div>`;
+  });
+  $("#tab-approve").innerHTML = h;
+  document.querySelectorAll("[data-ap]").forEach(b => b.onclick = () => {
+    const r = S.reports[+b.dataset.ap];
+    if (r.kind==="g"){ const m=S.gm.find(x=>x.id===r.mid); Object.assign(m,{w:r.w, ka:r.ka, kb:r.kb, da:r.kb, db:r.ka}); }
+    else { setSeries(r.mid, r.sa, r.sb); }
+    S.reports.splice(+b.dataset.ap,1); save();
+  });
+  document.querySelectorAll("[data-ed]").forEach(b => b.onclick = () => { const r=S.reports[+b.dataset.ed]; r.kind==="g" ? openGame(r.mid, r) : openSeries(r.mid, r); });
+  document.querySelectorAll("[data-rj]").forEach(b => b.onclick = () => { S.reports.splice(+b.dataset.rj,1); save(); });
+}
+
+function rTeams(){
+  $("#tab-teams").innerHTML = `<p class="sub">20 sample teams (10 zones × 2). In the real version these come straight from the team registration page. The draw keeps each zone's two teams in different groups.</p>
+    <div class="teams">${S.teams.slice().sort((x,y)=>x.zone-y.zone||x.name.localeCompare(y.name)).map(t=>`<div><span class="tn">${esc(t.name)}</span><span class="zone">Group ${t.group}</span></div>`).join("")}</div>`;
+}
+
+render();
+})();
+</script>
+</body>
+</html>

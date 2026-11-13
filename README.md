@@ -14,4 +14,11 @@ Link options (add to the URL):
 - `&wa=60123456789` – organiser's WhatsApp number (button to open the chat after sending)
 - `&deadline=30%20Oct%2C%2010pm` – deadline shown under the title
 
+## Tournament demo
+
+`tournament.html` (https://juji-atelier.github.io/ja-register/tournament.html) is a Challonge-style demo for SUKSES V MLBB:
+4 groups of 5 (round robin, BO1, 1 pt per win, tie-break points → head-to-head → kills → fewest deaths),
+then an 8-team double-elimination bracket (group winners to the upper bracket, runners-up to the lower, BO3, Grand Final BO5),
+plus captain result reporting and organiser approval. Demo data is saved in the browser only.
+
 © JUJI-ATELIER SYSTEM
