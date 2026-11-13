@@ -30,7 +30,7 @@
   body{margin:0;background:var(--abyss);color:var(--ink);font:400 15px/1.45 var(--bd);
     background-image:radial-gradient(900px 420px at 0% -10%,rgba(210,58,85,.18),transparent 60%),radial-gradient(900px 420px at 100% -10%,rgba(58,134,217,.18),transparent 60%);
     background-repeat:no-repeat;min-height:100vh}
-  .wrap{max-width:1180px;margin:0 auto;padding:18px 16px calc(40px + env(safe-area-inset-bottom))}
+  .wrap{max-width:1380px;margin:0 auto;padding:18px 16px calc(40px + env(safe-area-inset-bottom))}
   :focus-visible{outline:2px solid var(--crown);outline-offset:2px}
   button{font:600 14px var(--bd);color:var(--ink);background:var(--deck);border:1px solid var(--line);border-radius:10px;padding:9px 14px;cursor:pointer;min-height:40px}
   button:hover{border-color:#3a4d78}
@@ -60,7 +60,7 @@
   .stage{font:600 13px var(--hd);color:var(--mist);letter-spacing:.06em;text-transform:uppercase}
 
   /* groups */
-  .groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+  .groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:14px}
   .card{background:var(--deck);border:1px solid var(--line);border-radius:14px;overflow:hidden}
   .card h3{margin:0;padding:10px 14px;font:700 15px var(--hd);letter-spacing:.06em;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
   .card h3 .g{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:#fff;font-size:14px}
@@ -87,10 +87,26 @@
   .bye{color:var(--mist);font-size:12.5px;margin:2px 6px}
   td.tbc{color:var(--mist);font-size:13px}
   td.tbc.hit{color:var(--crown);font-weight:700;background:rgba(242,182,50,.12)}
+  .gwrap{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:14px;align-items:start}
+  @media (max-width:1100px){.gwrap{grid-template-columns:1fr}}
+  .legend{position:sticky;top:12px;background:var(--deck);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13px}
+  .legend h5{margin:4px 0 8px;font:700 12px var(--hd);letter-spacing:.1em;color:var(--mist)}
+  .legend h5+h5,.legend dl+h5,.legend ul+h5{margin-top:14px}
+  .legend dl{display:grid;grid-template-columns:44px 1fr;gap:5px 8px;margin:0}
+  .legend dt{font:700 12px var(--hd);color:var(--ink)}
+  .legend dd{margin:0;color:var(--mist);line-height:1.35}
+  .legend ul{margin:0;padding-left:0;list-style:none;color:var(--mist);line-height:1.4}
+  .legend li{margin:5px 0;display:flex;gap:8px;align-items:flex-start}
+  .legend .sw{flex:none;width:18px;height:14px;border-radius:3px;margin-top:2px}
+  .legend ol{margin:0;padding-left:22px;list-style:decimal;color:var(--ink);line-height:1.5}
+  .guide{max-width:820px}
+  .guide h3{font:700 17px var(--hd);margin:22px 0 6px}
+  .guide p,.guide li{color:var(--mist);line-height:1.55}
+  .guide b{color:var(--ink)}
   .tbn{font-size:11.5px;color:var(--crown);font-weight:500;line-height:1.3;margin-top:2px}
   .tbn.bad{color:#ffb4a8;font-weight:700}
   .tbrow{border-color:rgba(242,182,50,.35)}
-  .coin{margin-top:4px;min-height:28px;padding:3px 9px;font-size:12px;border-color:var(--crown);color:var(--crown)}
+  .coin{margin-top:4px;min-height:28px;padding:3px 8px;font-size:12px;white-space:nowrap;border-color:var(--crown);color:var(--crown)}
   .tbsel{display:grid;grid-template-columns:120px 1fr;gap:10px 14px;align-items:center;padding:14px}
   .tbsel select{max-width:360px;width:100%}
   .lab{font:600 12px var(--hd);letter-spacing:.08em;color:var(--mist);text-transform:uppercase}
@@ -169,6 +185,7 @@
     <button data-tab="approve">Approvals <span class="badge" id="qCount">0</span></button>
     <button data-tab="teams">Teams</button>
     <button data-tab="rules">Rules</button>
+    <button data-tab="guide">Guide</button>
   </nav>
 
   <section id="tab-groups"></section>
@@ -177,6 +194,7 @@
   <section id="tab-approve" hidden></section>
   <section id="tab-teams" hidden></section>
   <section id="tab-rules" hidden></section>
+  <section id="tab-guide" hidden></section>
 
   <div class="foot"><svg class="logo" viewBox="0 0 140 79" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M54.75 30.67 L54.15 30.62 L53.93 29.88 L54.99 22.0 L55.83 20.0 L56.03 17.62 L56.83 15.75 L57.07 13.75 L57.81 11.88 L58.51 7.62 L58.4 4.75 L57.25 0.0 L72.52 0.0 L69.81 5.5 L69.07 6.38 L62.81 17.5 L60.25 21.38 L59.86 22.5 L55.84 29.5ZM136.62 78.13 L120.88 78.1 L120.12 77.86 L118.25 75.38 L110.79 62.25 L109.5 61.03 L70.75 61.08 L70.22 60.88 L70.14 60.12 L73.7 54.5 L77.12 48.12 L78.12 47.12 L98.38 47.01 L101.0 46.91 L101.5 46.55 L98.74 41.38 L93.12 32.44 L85.75 19.51 L85.38 19.28 L84.11 20.25 L81.8 24.5 L72.13 40.38 L71.7 41.5 L66.1 50.38 L65.72 51.5 L60.23 60.38 L56.88 66.48 L52.62 71.66 L48.62 74.72 L44.38 76.79 L39.25 77.9 L1.75 78.04 L1.0 77.78 L0.79 77.25 L6.13 68.5 L7.68 66.5 L8.15 65.38 L10.25 63.06 L34.0 62.9 L36.0 62.04 L37.62 61.8 L39.62 60.64 L42.88 57.47 L59.1 29.38 L62.82 23.5 L66.12 17.38 L71.74 8.5 L76.32 0.0 L93.0 -0.05 L93.85 0.0 L96.73 4.38 L100.06 10.5 L102.74 14.38 L106.07 20.5 L106.85 21.38 L109.03 25.5 L109.8 26.38 L116.15 37.5 L118.68 41.38 L119.07 42.5 L119.86 43.38 L122.04 47.5 L122.79 48.38 L123.19 49.5 L129.76 60.38 L138.34 75.5 L139.12 76.68 L139.88 77.07 L139.88 77.97Z"/></svg>© JUJI-ATELIER SYSTEM · JA ESPORT Tournament (demo)</div>
 </div>
@@ -287,7 +305,7 @@ function standings(g){
         if (c) { up.by=up.by||c; dn.by=dn.by||c; }
         if (c==="org") up.note=(up.note?up.note+"; ":"")+"above "+T(dn.id).name+" by "+(up.how==="game"?"winning the tiebreaker game":"the organiser's coin toss");
         else if (c) up.note=(up.note?up.note+"; ":"")+"above "+T(dn.id).name+": "+TB[c].short+" "+show(up,c)+" vs "+show(dn,c);
-        else { up.unresolved=dn.unresolved=true; up.note=(up.note?up.note+"; ":"")+"level with "+T(dn.id).name+" on every tie-break: organiser decides"; }
+        else { up.unresolved=dn.unresolved=true; up.note=(up.note?up.note+"; ":"")+"still level with "+T(dn.id).name; }
       }
     }
     out.push(...tied); i=j;
@@ -311,10 +329,10 @@ let tab = "groups", capTeam = "";
 $("#nav").addEventListener("click", e => { const b=e.target.closest("button[data-tab]"); if(!b) return; tab=b.dataset.tab; render(); });
 function render(){
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on", b.dataset.tab===tab));
-  ["groups","bracket","captain","approve","teams","rules"].forEach(t => $("#tab-"+t).hidden = t!==tab);
+  ["groups","bracket","captain","approve","teams","rules","guide"].forEach(t => $("#tab-"+t).hidden = t!==tab);
   $("#evName").textContent = S.event;
   $("#qCount").textContent = S.reports.length;
-  ({groups:rGroups, bracket:rBracket, captain:rCaptain, approve:rApprove, teams:rTeams, rules:rRules})[tab]();
+  ({groups:rGroups, bracket:rBracket, captain:rCaptain, approve:rApprove, teams:rTeams, rules:rRules, guide:rGuide})[tab]();
 }
 const name = id => id ? esc(T(id).name) : "TBD";
 
@@ -323,13 +341,13 @@ function rGroups(){
   let h = `<div class="bar"><span class="stage">Group stage · ${done} / ${S.gm.length} games played</span><span class="sp"></span>
     <button class="sm" id="simG">Simulate all group results</button><button class="sm ghost" id="redraw">New group draw</button><button class="sm ghost" id="reset">Reset demo</button></div>
     <p class="sub" style="margin:-6px 0 12px">Tap any game to enter or change its result. Top 2 of each group qualify (gold). Winners go to the upper bracket, runners-up to the lower bracket. Tie-break: points, then ${esc(tbList().map(k=>TB[k].short).join(" → "))}. Teams split by a tie-break show why under their name.</p>
-    <div class="groups">`;
+    <div class="gwrap"><div class="groups">`;
   for (const g of GROUPS){
     const st = standings(g);
     h += `<div class="card"><h3><span class="g" style="background:${GCOL[g]}">${g}</span>GROUP ${g}${groupDone(g)?' <span class="sub" style="margin-left:auto">complete</span>':''}</h3>
       <table><tr><th>#</th><th class="l">TEAM</th><th>P</th><th>W</th><th>L</th><th>K</th><th>D</th><th title="Points: 1 per win">PTS</th><th title="Head-to-head: wins against the other teams on the same points">H2H</th><th title="Kill difference: kills minus deaths">KD</th></tr>`;
     st.forEach((r,i)=>{ h += `<tr class="${i<2?'q':''}"><td class="rk">${i+1}</td><td class="l"><span class="tn">${name(r.id)}</span>${(()=>{ const imp = r.unresolved && i<=2 && st.some((x,j)=>j!==i && j<=2 && x.unresolved && x.pts===r.pts);
-   return (r.note?`<div class="tbn${imp?' bad':''}">${imp?'⚠ ':'↳ '}${esc(imp||!r.unresolved?r.note:r.note.replace('organiser decides','no effect on qualifying'))}</div>`:'') + (imp?(tbPending(r.id)?`<div class="tbn" style="color:var(--mist)">⏳ tiebreaker game scheduled (see TIEBREAKER below)</div>`:`<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="sm coin" data-tbg="${g}|${r.id}">Schedule tiebreaker game</button><button class="sm coin" data-coin="${g}|${r.id}">Won the coin toss ⬆</button></div>`):''); })()}</td><td>${r.p}</td><td>${r.w}</td><td>${r.l}</td><td class="${r.by==='kills'?'tbc hit':''}">${r.k}</td><td class="${r.by==='deaths'?'tbc hit':''}">${r.d}</td><td class="pts">${r.pts}</td><td class="tbc${r.by==='h2h'?' hit':''}">${r.tied?r.h2h:'–'}</td><td class="tbc${r.by==='kd'?' hit':''}">${r.kd>0?'+':''}${r.kd}</td></tr>`; });
+   return (r.note?`<div class="tbn${imp?' bad':''}">${imp?'⚠ ':'↳ '}${esc(imp||!r.unresolved?r.note:r.note+' (no effect on qualifying)')}</div>`:'') + (imp?(tbPending(r.id)?`<div class="tbn" style="color:var(--mist)">⏳ tiebreaker game scheduled (see TIEBREAKER below)</div>`:`<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="sm coin" data-tbg="${g}|${r.id}">Tiebreaker game</button><button class="sm coin" data-coin="${g}|${r.id}">Coin toss ⬆</button></div>`):''); })()}</td><td>${r.p}</td><td>${r.w}</td><td>${r.l}</td><td class="${r.by==='kills'?'tbc hit':''}">${r.k}</td><td class="${r.by==='deaths'?'tbc hit':''}">${r.d}</td><td class="pts">${r.pts}</td><td class="tbc${r.by==='h2h'?' hit':''}">${r.tied?r.h2h:'–'}</td><td class="tbc${r.by==='kd'?' hit':''}">${r.kd>0?'+':''}${r.kd}</td></tr>`; });
     h += `</table><div class="matches">`;
     for (let r=1;r<=5;r++){
       h += `<div class="rnd">ROUND ${r}</div>`;
@@ -355,7 +373,7 @@ function rGroups(){
     }
     h += `</div></div>`;
   }
-  $("#tab-groups").innerHTML = h + `</div>`;
+  $("#tab-groups").innerHTML = h + `</div><aside class="legend">${legendHTML()}</aside></div>`;
   $("#simG").onclick = () => { S.gm.forEach(m=>{ if(!m.w) randomResult(m); }); S.reports = S.reports.filter(x=>x.kind!=="g"); save(); };
   $("#redraw").onclick = () => { if (confirm("Make a new group draw? All results will be cleared.")) { draw(S); save(); } };
   $("#reset").onclick = () => { if (confirm("Reset the whole demo?")) { S = fresh(); save(); } };
@@ -562,6 +580,32 @@ function rApprove(){
   document.querySelectorAll("[data-rj]").forEach(b => b.onclick = () => { S.reports.splice(+b.dataset.rj,1); save(); });
 }
 
+function legendHTML(){
+  return `<h5>COLUMNS</h5><dl><dt>#</dt><dd>Rank in the group</dd><dt>P</dt><dd>Games played</dd><dt>W</dt><dd>Wins</dd><dt>L</dt><dd>Losses</dd><dt>K</dt><dd>Total kills</dd><dt>D</dt><dd>Total deaths</dd><dt>PTS</dt><dd>Points: 1 per win. Ranking starts here</dd><dt>H2H</dt><dd>Head-to-head: wins against the other teams on the <b>same points</b>. “–” = not tied</dd><dt>KD</dt><dd>Kill difference: kills minus deaths</dd></dl>
+  <h5>COLOURS &amp; MARKS</h5><ul>
+    <li><span class="sw" style="background:rgba(242,182,50,.25)"></span><span><b style="color:var(--ink)">Gold row</b>: qualifies. 1st → upper bracket, 2nd → lower bracket</span></li>
+    <li><span class="sw" style="background:rgba(242,182,50,.35);outline:1px solid var(--crown)"></span><span><b style="color:var(--ink)">Gold number</b>: the tie-break that decided the order</span></li>
+    <li><span class="sw" style="color:var(--crown);font-weight:700;text-align:center">↳</span><span>Why this team is above the next one</span></li>
+    <li><span class="sw" style="color:#ffb4a8;font-weight:700;text-align:center">⚠</span><span>Still level after every tie-break: tiebreaker game or coin toss</span></li>
+    <li><span class="sw" style="background:#4cc37a33;outline:1px solid #48bb6e"></span><span>Green team name in a game = winner</span></li>
+  </ul>
+  <h5>TIE-BREAK ORDER (SAME POINTS)</h5><ol>${tbList().map(k=>`<li>${esc(TB[k].label)}</li>`).join("")}<li>Tiebreaker game or coin toss</li></ol>`;
+}
+function rGuide(){
+  $("#tab-guide").innerHTML = `<div class="guide">
+    <h3>Format</h3><p><b>20 teams</b> in <b>4 groups of 5</b>. Each team plays the other 4 teams in its group once (<b>BO1</b>), with one bye per round. A win is <b>1 point</b>, a loss 0.</p>
+    <p>The <b>top 2</b> of each group go to the playoffs: group <b>winners</b> to the <b>upper bracket</b>, <b>runners-up</b> to the <b>lower bracket</b>.</p>
+    <h3>When teams have the same points</h3>
+    <p>Tie-breaks don't add points. They only decide who ranks higher, one after another, until the teams are separated:</p>
+    <ol>${tbList().map(k=>`<li><b>${esc(TB[k].label)}</b></li>`).join("")}<li><b>Tiebreaker game or coin toss</b>, only if the tie decides who qualifies or which bracket they go to</li></ol>
+    <p><b>Head-to-head</b> counts only the games between the tied teams. With three teams tied, it's a mini-table of their games against each other. Each tie-break is applied to the whole tied group at once, like on Challonge.</p>
+    <p>Under each tied team, the table says why it's higher (for example "above Zone 8 A: head-to-head 1 win vs 0 wins") and the deciding number is highlighted in gold.</p>
+    <h3>Tiebreaker game</h3><p>If teams are still level and it matters for qualifying, the organiser can schedule an extra <b>BO1 tiebreaker game</b> (listed under the group as TIEBREAKER) or use a <b>coin toss</b>. The winner goes above. The extra game doesn't count in points, kills or deaths. Every decision is recorded with its time on the Rules tab.</p>
+    <h3>Playoffs (double elimination)</h3>
+    <p>Same as the organiser's Challonge: upper bracket <b>Match 1</b> (1st A vs 1st C) and <b>Match 2</b> (1st B vs 1st D); lower bracket <b>Match 3</b> (2nd D vs 2nd B) and <b>Match 4</b> (2nd C vs 2nd A). Losing in the upper bracket drops a team to the lower bracket; losing in the lower bracket knocks it out. All series are <b>BO3</b>; the <b>Grand Final (Match 10) is BO5</b>.</p>
+    <h3>Table columns</h3><div class="legend" style="position:static;max-width:520px">${legendHTML()}</div>
+  </div>`;
+}
 function rRules(){
   const cur = (S.rules&&S.rules.tb)||DEFAULT_TB, started = S.gm.some(m=>m.w);
   const opt = sel => Object.keys(TB).map(k=>`<option value="${k}" ${k===sel?'selected':''}>${esc(TB[k].label)}</option>`).join("");
