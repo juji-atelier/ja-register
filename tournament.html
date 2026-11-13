@@ -85,6 +85,8 @@
   .m.rep{border-color:var(--warn)}
   .m .tag{font:700 10px var(--hd);letter-spacing:.06em;padding:2px 6px;border-radius:5px;background:var(--warn);color:#1a1200}
   .bye{color:var(--mist);font-size:12.5px;margin:2px 6px}
+  td.tbc{color:var(--mist);font-size:13px}
+  td.tbc.hit{color:var(--crown);font-weight:700;background:rgba(242,182,50,.12)}
   .tbn{font-size:11.5px;color:var(--crown);font-weight:500;line-height:1.3;margin-top:2px}
   .tbn.bad{color:#ffb4a8;font-weight:700}
   .tbrow{border-color:rgba(242,182,50,.35)}
@@ -269,20 +271,22 @@ function standings(g){
   let n=0; (S.tbm||[]).forEach(e=>{ if (e.g===g && e.w && R[e.w]) { R[e.w].org=++n; R[e.w].how=e.kind; } });
   const crit = tbList().concat("org");   // last: organiser decision (coin toss)
   const val = (r,c) => c==="h2h"?r.h2h : c==="kd"?r.kd : c==="kills"?r.k : c==="org"?r.org : -r.d;
-  const show = (r,c) => c==="h2h"?r.h2h+(r.h2h===1?" win":" wins") : c==="kd"?(r.kd>0?"+":"")+r.kd : c==="kills"?r.k+" kills" : r.d+" deaths";
+  const show = (r,c) => c==="h2h"?r.h2h+(r.h2h===1?" win":" wins") : c==="kd"?(r.kd>0?"+":"")+r.kd : c==="kills"?r.k : r.d;
   rows.sort((x,y)=>y.pts-x.pts);
   const out = [];
   for (let i=0;i<rows.length;){
     let j=i; while (j<rows.length && rows[j].pts===rows[i].pts) j++;
     const tied = rows.slice(i,j);
     if (tied.length>1 && rows[i].p>0){
+      tied.forEach(r=>r.tied=true);
       const ids = new Set(tied.map(r=>r.id));
       for (const m of S.gm) if (m.g===g && m.w && ids.has(m.a) && ids.has(m.b)) R[m.w==="a"?m.a:m.b].h2h++;
       tied.sort((x,y)=>{ for (const c of crit){ const d=val(y,c)-val(x,c); if (d) return d; } return 0; });
       for (let k=0;k<tied.length-1;k++){
         const up=tied[k], dn=tied[k+1], c=crit.find(c=>val(up,c)!==val(dn,c));
+        if (c) { up.by=up.by||c; dn.by=dn.by||c; }
         if (c==="org") up.note=(up.note?up.note+"; ":"")+"above "+T(dn.id).name+" by "+(up.how==="game"?"winning the tiebreaker game":"the organiser's coin toss");
-        else if (c) up.note=(up.note?up.note+"; ":"")+"above "+T(dn.id).name+" on "+TB[c].short+" ("+show(up,c)+" vs "+show(dn,c)+")";
+        else if (c) up.note=(up.note?up.note+"; ":"")+"above "+T(dn.id).name+": "+TB[c].short+" "+show(up,c)+" vs "+show(dn,c);
         else { up.unresolved=dn.unresolved=true; up.note=(up.note?up.note+"; ":"")+"level with "+T(dn.id).name+" on every tie-break: organiser decides"; }
       }
     }
@@ -323,9 +327,9 @@ function rGroups(){
   for (const g of GROUPS){
     const st = standings(g);
     h += `<div class="card"><h3><span class="g" style="background:${GCOL[g]}">${g}</span>GROUP ${g}${groupDone(g)?' <span class="sub" style="margin-left:auto">complete</span>':''}</h3>
-      <table><tr><th>#</th><th class="l">TEAM</th><th>P</th><th>W</th><th>L</th><th>K</th><th>D</th><th>PTS</th></tr>`;
+      <table><tr><th>#</th><th class="l">TEAM</th><th>P</th><th>W</th><th>L</th><th>K</th><th>D</th><th title="Points: 1 per win">PTS</th><th title="Head-to-head: wins against the other teams on the same points">H2H</th><th title="Kill difference: kills minus deaths">KD</th></tr>`;
     st.forEach((r,i)=>{ h += `<tr class="${i<2?'q':''}"><td class="rk">${i+1}</td><td class="l"><span class="tn">${name(r.id)}</span>${(()=>{ const imp = r.unresolved && i<=2 && st.some((x,j)=>j!==i && j<=2 && x.unresolved && x.pts===r.pts);
-   return (r.note?`<div class="tbn${imp?' bad':''}">${imp?'⚠ ':'↳ '}${esc(imp||!r.unresolved?r.note:r.note.replace('organiser decides','no effect on qualifying'))}</div>`:'') + (imp?(tbPending(r.id)?`<div class="tbn" style="color:var(--mist)">⏳ tiebreaker game scheduled (see TIEBREAKER below)</div>`:`<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="sm coin" data-tbg="${g}|${r.id}">Schedule tiebreaker game</button><button class="sm coin" data-coin="${g}|${r.id}">Won the coin toss ⬆</button></div>`):''); })()}</td><td>${r.p}</td><td>${r.w}</td><td>${r.l}</td><td>${r.k}</td><td>${r.d}</td><td class="pts">${r.pts}</td></tr>`; });
+   return (r.note?`<div class="tbn${imp?' bad':''}">${imp?'⚠ ':'↳ '}${esc(imp||!r.unresolved?r.note:r.note.replace('organiser decides','no effect on qualifying'))}</div>`:'') + (imp?(tbPending(r.id)?`<div class="tbn" style="color:var(--mist)">⏳ tiebreaker game scheduled (see TIEBREAKER below)</div>`:`<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="sm coin" data-tbg="${g}|${r.id}">Schedule tiebreaker game</button><button class="sm coin" data-coin="${g}|${r.id}">Won the coin toss ⬆</button></div>`):''); })()}</td><td>${r.p}</td><td>${r.w}</td><td>${r.l}</td><td class="${r.by==='kills'?'tbc hit':''}">${r.k}</td><td class="${r.by==='deaths'?'tbc hit':''}">${r.d}</td><td class="pts">${r.pts}</td><td class="tbc${r.by==='h2h'?' hit':''}">${r.tied?r.h2h:'–'}</td><td class="tbc${r.by==='kd'?' hit':''}">${r.kd>0?'+':''}${r.kd}</td></tr>`; });
     h += `</table><div class="matches">`;
     for (let r=1;r<=5;r++){
       h += `<div class="rnd">ROUND ${r}</div>`;
