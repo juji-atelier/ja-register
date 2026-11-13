@@ -236,7 +236,7 @@ function draw(st){
       if (a && b) st.gm.push({id:g+"-"+(r+1)+"-"+a+"-"+b, g, r:r+1, a, b, w:null, ka:0, kb:0, da:0, db:0});
     }));
   }
-  st.br = {}; st.reports = []; st.teams.forEach(t=>delete t.otb);
+  st.br = {}; st.reports = []; st.teams.forEach(t=>{delete t.otb; delete t.otbHow;});
 }
 function roundRobin(ids){
   const t = ids.slice(); if (t.length % 2) t.push(null);
@@ -279,7 +279,7 @@ function standings(g){
       tied.sort((x,y)=>{ for (const c of crit){ const d=val(y,c)-val(x,c); if (d) return d; } return 0; });
       for (let k=0;k<tied.length-1;k++){
         const up=tied[k], dn=tied[k+1], c=crit.find(c=>val(up,c)!==val(dn,c));
-        if (c==="org") up.note=(up.note?up.note+"; ":"")+"above "+T(dn.id).name+" by organiser decision (coin toss)";
+        if (c==="org") up.note=(up.note?up.note+"; ":"")+"above "+T(dn.id).name+" by "+(T(up.id).otbHow==="game"?"winning the tiebreaker game":"the organiser's coin toss");
         else if (c) up.note=(up.note?up.note+"; ":"")+"above "+T(dn.id).name+" on "+TB[c].short+" ("+show(up,c)+" vs "+show(dn,c)+")";
         else { up.unresolved=dn.unresolved=true; up.note=(up.note?up.note+"; ":"")+"level with "+T(dn.id).name+" on every tie-break: organiser decides"; }
       }
@@ -323,7 +323,7 @@ function rGroups(){
     h += `<div class="card"><h3><span class="g" style="background:${GCOL[g]}">${g}</span>GROUP ${g}${groupDone(g)?' <span class="sub" style="margin-left:auto">complete</span>':''}</h3>
       <table><tr><th>#</th><th class="l">TEAM</th><th>P</th><th>W</th><th>L</th><th>K</th><th>D</th><th>PTS</th></tr>`;
     st.forEach((r,i)=>{ h += `<tr class="${i<2?'q':''}"><td class="rk">${i+1}</td><td class="l"><span class="tn">${name(r.id)}</span>${(()=>{ const imp = r.unresolved && i<=2 && st.some((x,j)=>j!==i && j<=2 && x.unresolved && x.pts===r.pts);
-   return (r.note?`<div class="tbn${imp?' bad':''}">${imp?'⚠ ':'↳ '}${esc(imp||!r.unresolved?r.note:r.note.replace('organiser decides','no effect on qualifying'))}</div>`:'') + (imp?`<button class="sm coin" data-coin="${g}|${r.id}">Won the coin toss ⬆</button>`:''); })()}</td><td>${r.p}</td><td>${r.w}</td><td>${r.l}</td><td>${r.k}</td><td>${r.d}</td><td class="pts">${r.pts}</td></tr>`; });
+   return (r.note?`<div class="tbn${imp?' bad':''}">${imp?'⚠ ':'↳ '}${esc(imp||!r.unresolved?r.note:r.note.replace('organiser decides','no effect on qualifying'))}</div>`:'') + (imp?`<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="sm coin" data-coin="${g}|${r.id}|game">Won the tiebreaker game ⬆</button><button class="sm coin" data-coin="${g}|${r.id}|coin">Won the coin toss ⬆</button></div>`:''); })()}</td><td>${r.p}</td><td>${r.w}</td><td>${r.l}</td><td>${r.k}</td><td>${r.d}</td><td class="pts">${r.pts}</td></tr>`; });
     h += `</table><div class="matches">`;
     for (let r=1;r<=5;r++){
       h += `<div class="rnd">ROUND ${r}</div>`;
@@ -345,9 +345,9 @@ function rGroups(){
   $("#redraw").onclick = () => { if (confirm("Make a new group draw? All results will be cleared.")) { draw(S); save(); } };
   $("#reset").onclick = () => { if (confirm("Reset the whole demo?")) { S = fresh(); save(); } };
   document.querySelectorAll("[data-gm]").forEach(el => el.onclick = () => openGame(el.dataset.gm));
-  document.querySelectorAll("[data-coin]").forEach(b => b.onclick = () => { const [g,id]=b.dataset.coin.split("|");
-    T(id).otb = Math.max(0,...S.teams.filter(x=>x.group===g).map(x=>x.otb||0))+1;
-    (S.rulesLog=S.rulesLog||[]).push({at:Date.now(),from:[],to:[],note:"Coin toss: "+T(id).name+" (Group "+g+")"}); save(); });
+  document.querySelectorAll("[data-coin]").forEach(b => b.onclick = () => { const [g,id,how]=b.dataset.coin.split("|");
+    T(id).otb = Math.max(0,...S.teams.filter(x=>x.group===g).map(x=>x.otb||0))+1; T(id).otbHow = how;
+    (S.rulesLog=S.rulesLog||[]).push({at:Date.now(),from:[],to:[],note:(how==="game"?"Tiebreaker game":"Coin toss")+": "+T(id).name+" (Group "+g+")"}); save(); });
 }
 function randomResult(m){
   const ka = 8+Math.floor(Math.random()*20), kb = 8+Math.floor(Math.random()*20);
