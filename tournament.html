@@ -184,19 +184,19 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">"
 
 /* ---------- double elimination (8 teams: 4 group winners in upper, 4 runners-up in lower) ---------- */
 const SERIES = [
-  {id:"UB1", lane:"U", col:0, bo:3, a:{seed:"A1"}, b:{seed:"B1"}, name:"Upper semi 1"},
-  {id:"UB2", lane:"U", col:0, bo:3, a:{seed:"C1"}, b:{seed:"D1"}, name:"Upper semi 2"},
-  {id:"UBF", lane:"U", col:1, bo:3, a:{w:"UB1"}, b:{w:"UB2"}, name:"Upper final"},
-  {id:"GF",  lane:"U", col:2, bo:5, a:{w:"UBF"}, b:{w:"LBF"}, name:"Grand Final"},
-  {id:"LB1", lane:"L", col:0, bo:3, a:{seed:"A2"}, b:{seed:"C2"}, name:"Lower round 1"},
-  {id:"LB2", lane:"L", col:0, bo:3, a:{seed:"B2"}, b:{seed:"D2"}, name:"Lower round 1"},
-  {id:"LB3", lane:"L", col:1, bo:3, a:{w:"LB1"}, b:{l:"UB2"}, name:"Lower round 2"},
-  {id:"LB4", lane:"L", col:1, bo:3, a:{w:"LB2"}, b:{l:"UB1"}, name:"Lower round 2"},
-  {id:"LB5", lane:"L", col:2, bo:3, a:{w:"LB3"}, b:{w:"LB4"}, name:"Lower semi"},
-  {id:"LBF", lane:"L", col:3, bo:3, a:{w:"LB5"}, b:{l:"UBF"}, name:"Lower final"}
-];
+    { id: "UB1", no: 1,  lane: "U", col: 0, bo: 3, a: { seed: "A1" }, b: { seed: "C1" }, name: "Upper round 1" },
+    { id: "UB2", no: 2,  lane: "U", col: 0, bo: 3, a: { seed: "B1" }, b: { seed: "D1" }, name: "Upper round 1" },
+    { id: "UBF", no: 8,  lane: "U", col: 1, bo: 3, a: { w: "UB1" }, b: { w: "UB2" }, name: "Upper final" },
+    { id: "GF",  no: 10, lane: "U", col: 2, bo: 5, a: { w: "UBF" }, b: { w: "LBF" }, name: "Grand Final" },
+    { id: "LB1", no: 3,  lane: "L", col: 0, bo: 3, a: { seed: "D2" }, b: { seed: "B2" }, name: "Lower round 1" },
+    { id: "LB2", no: 4,  lane: "L", col: 0, bo: 3, a: { seed: "C2" }, b: { seed: "A2" }, name: "Lower round 1" },
+    { id: "LB3", no: 5,  lane: "L", col: 1, bo: 3, a: { l: "UB2" }, b: { w: "LB1" }, name: "Lower round 2" },
+    { id: "LB4", no: 6,  lane: "L", col: 1, bo: 3, a: { l: "UB1" }, b: { w: "LB2" }, name: "Lower round 2" },
+    { id: "LB5", no: 7,  lane: "L", col: 2, bo: 3, a: { w: "LB3" }, b: { w: "LB4" }, name: "Lower round 3" },
+    { id: "LBF", no: 9,  lane: "L", col: 3, bo: 3, a: { l: "UBF" }, b: { w: "LB5" }, name: "Lower final" }
+  ];
 const SBY = Object.fromEntries(SERIES.map(s => [s.id, s]));
-const COLNAMES = {U:["Upper semi-finals","Upper final","Grand Final (BO5)"], L:["Lower round 1","Lower round 2","Lower semi","Lower final"]};
+const COLNAMES = {U:["Upper round 1","Upper final","Grand Final (BO5)"], L:["Lower round 1","Lower round 2","Lower round 3","Lower final"]};
 
 /* ---------- state ---------- */
 let S = load() || fresh();
@@ -275,7 +275,7 @@ function serWinner(id){ const s=S.br[id]; if(!s) return null; const need=Math.ce
 function serLoser(id){ const w=serWinner(id); if(!w) return null; const [a,b]=sides(id); return w===a?b:a; }
 function res(ref){ if (ref.seed) return seedTeam(ref.seed); if (ref.w) return serWinner(ref.w); if (ref.l) return serLoser(ref.l); return null; }
 function sides(id){ const s=SBY[id]; return [res(s.a), res(s.b)]; }
-function refLabel(ref){ if (ref.seed) return "Group "+ref.seed[0]+" #"+ref.seed[1]; if (ref.w) return "Winner "+ref.w; return "Loser "+ref.l; }
+function refLabel(ref){ if (ref.seed) return (ref.seed[1]==="1"?"1st":"2nd")+" in Group "+ref.seed[0]; if (ref.w) return "Winner of Match "+SBY[ref.w].no; return "Loser of Match "+SBY[ref.l].no; }
 
 /* ---------- render ---------- */
 let tab = "groups", capTeam = "";
@@ -356,7 +356,7 @@ function serCard(id){
   const row = (t, ref, sc) => `<div class="t ${!t?'tbd':''} ${w&&t===w?'win':''} ${w&&t&&t!==w?'los':''}">
       ${ref.seed?`<span class="seed">${ref.seed}</span>`:''}<span class="nm">${t?esc(T(t).name):refLabel(ref)}</span><span class="sc">${a&&b?sc:''}</span></div>`;
   return `<div class="ser" data-ser="${id}">${row(a,s.a,r.sa)}${row(b,s.b,r.sb)}
-    <div class="bo">${id} · BO${s.bo} · ${s.name}${rep?' · <span class="tag" style="background:var(--warn);color:#1a1200;padding:1px 5px;border-radius:4px">REPORTED</span>':''}</div></div>`;
+    <div class="bo">Match ${s.no} · BO${s.bo} · ${s.name}${rep?' · <span class="tag" style="background:var(--warn);color:#1a1200;padding:1px 5px;border-radius:4px">REPORTED</span>':''}</div></div>`;
 }
 function rBracket(){
   const gf = serWinner("GF");
